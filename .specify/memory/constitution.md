@@ -1,15 +1,15 @@
 <!-- 
 Sync Impact Report:
-Version change: 1.1.0 → 1.2.0
-Modified principles: Updated V. Composables for Logic Sharing to include Vuetify integration
-Added sections: VII. Vuetify UI Framework Standards (NEW)
-Updated sections: Nuxt.js Standards - replaced TailwindCSS with Vuetify in Module Strategy
+Version change: 1.2.0 → 1.3.0
+Modified principles: none
+Added sections: MCP Tooling Standards (Prisma MCP)
+Updated sections: Nuxt.js Standards (no change), Development Constraints (new MCP section)
 Removed sections: none
-Templates requiring updates: 
-✅ updated: plan-template.md Constitution Check includes Vuetify validation
-✅ updated: tasks-template.md includes Vuetify setup, theming, and UI component tasks
-✅ updated: copilot-instructions.md includes Vuetify architecture and component patterns
-Follow-up TODOs: None - all templates synchronized with Vuetify integration
+Templates requiring updates:
+✅ updated: plan-template.md Constitution Check includes MCP (Prisma) validation
+✅ updated: tasks-template.md adds MCP setup tasks and renumbers subsequent tasks
+⚠ optional: copilot-instructions.md could add an MCP usage note (deferred)
+Follow-up TODOs: None
 -->
 
 # ABB Constitution
@@ -102,10 +102,21 @@ All database interactions MUST follow Prisma best practices:
 - Commitlint for conventional commits
 - Pre-commit hooks for linting and type checking
 
+## MCP Tooling Standards (Prisma MCP)
+
+Local AI tooling MAY use the Prisma MCP server to assist with schema reasoning and safe query generation. If used, the following rules apply:
+
+- Local-only: The MCP server MUST run locally only and MUST NOT be exposed publicly or used in production environments.
+- Endpoint: Prefer SSE endpoint <http://127.0.0.1:8765/sse> (default).
+- Start command: Recommended to start via `npx -y prisma mcp` during development.
+- Editor configuration: When using VS Code, configure the MCP server in the user `mcp.json` (platform-specific path) with the local SSE endpoint.
+- Secrets and safety: Never include secrets in prompts. Generated queries MUST still pass code review and type checks.
+- Opt-in: This tooling is optional and MUST NOT introduce a hard dependency for builds or CI.
+
 ## Governance
 
 Constitution supersedes all other development practices. All pull requests MUST verify compliance with these principles. Amendments require team consensus, version bump, and migration plan for existing code.
 
 Complex architecture decisions that deviate from these principles MUST be documented with explicit justification and approved by senior team members.
 
-**Version**: 1.2.0 | **Ratified**: 2025-09-23 | **Last Amended**: 2025-09-23
+**Version**: 1.3.0 | **Ratified**: 2025-09-23 | **Last Amended**: 2025-09-24

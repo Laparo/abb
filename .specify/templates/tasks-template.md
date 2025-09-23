@@ -1,10 +1,12 @@
 # Tasks: [FEATURE NAME]
 
 **Input**: Design documents from `/specs/[###-feature-name]/`
+
 **Prerequisites**: plan.md (required), research.md, data-model.md, contracts/
 
 ## Execution Flow (main)
-```
+
+```text
 1. Load plan.md from feature directory
    → If not found: ERROR "No implementation plan found"
    → Extract: tech stack, libraries, structure
@@ -33,16 +35,18 @@
 ```
 
 ## Format: `[ID] [P?] Description`
-- **[P]**: Can run in parallel (different files, no dependencies)
+
+- [P]: Can run in parallel (different files, no dependencies)
 - Include exact file paths in descriptions
 
 ## Path Conventions
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+
+- Nuxt app (this project): `pages/`, `components/`, `layouts/`, `composables/`, `server/api/`, `server/services/`, `prisma/`, `tests/`
+- Shared types: `types/`
+- Adjust paths based on plan.md if feature-specific structure differs
 
 ## Phase 3.1: Setup
+
 - [ ] T001 Create project structure per implementation plan
 - [ ] T002 Initialize [language] project with [framework] dependencies
 - [ ] T003 [P] Configure linting and formatting tools
@@ -52,88 +56,102 @@
 - [ ] T007 [P] Install and configure Vuetify 3 with Nuxt.js integration
 - [ ] T008 [P] Configure Vuetify theme and Material Design tokens
 - [ ] T009 [P] Set up Vuetify tree-shaking for optimal bundle size
+- [ ] T010 [P] Configure local Prisma MCP server (add to VS Code mcp.json)
+- [ ] T011 [P] Document start command `npx -y prisma mcp` in README
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
-**CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
-- [ ] T004 [P] Contract test POST /api/users in tests/contract/test_users_post.py
-- [ ] T005 [P] Contract test GET /api/users/{id} in tests/contract/test_users_get.py
-- [ ] T006 [P] Integration test user registration in tests/integration/test_registration.py
-- [ ] T007 [P] Integration test auth flow in tests/integration/test_auth.py
+
+Note: These tests MUST be written and MUST FAIL before ANY implementation.
+
+- [ ] T004 [P] Contract test POST /api/users in `tests/contract/users.post.spec.ts`
+- [ ] T005 [P] Contract test GET /api/users/{id} in `tests/contract/users.[id].get.spec.ts`
+- [ ] T006 [P] Integration test user registration in `tests/integration/registration.spec.ts`
+- [ ] T007 [P] Integration test auth flow in `tests/integration/auth.spec.ts`
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [ ] T010 [P] Create Vuetify layout components (AppBar, NavigationDrawer)
-- [ ] T011 [P] User model in src/models/user.py
-- [ ] T012 [P] UserService CRUD in src/services/user_service.py
-- [ ] T013 [P] Vue components using Vuetify UI components
-- [ ] T014 POST /api/users endpoint
-- [ ] T015 GET /api/users/{id} endpoint
-- [ ] T016 Input validation with Vuetify form components
-- [ ] T017 Error handling and logging
-- [ ] T018 [P] Implement responsive design with Vuetify breakpoints
+
+- [ ] T012 [P] Create Vuetify layout (e.g., `layouts/default.vue`) and components (`components/AppAppBar.vue`, `components/AppNavigationDrawer.vue`)
+- [ ] T013 [P] Define `User` interface in `types/user.ts`
+- [ ] T014 [P] Server-side user service (CRUD) in `server/services/userService.ts`
+- [ ] T015 [P] Vue components using Vuetify UI components
+- [ ] T016 Implement `server/api/users.post.ts` (create user via Prisma)
+- [ ] T017 Implement `server/api/users/[id].get.ts` (get user via Prisma)
+- [ ] T018 Input validation: client (Vuetify forms) and server (`server/validators/user.ts`)
+- [ ] T019 Error handling and logging for API routes
+- [ ] T020 [P] Implement responsive design with Vuetify breakpoints
 
 ## Phase 3.4: Integration
-- [ ] T019 Generate Prisma client with `prisma generate`
-- [ ] T020 Run database migrations with `prisma migrate dev`
-- [ ] T021 Connect composables to Nuxt server API with Prisma client
-- [ ] T022 Configure Vuetify SSR with proper hydration
-- [ ] T023 Integrate Vuetify theme system with useTheme composable
-- [ ] T024 SSR hydration optimization for Vuetify components
-- [ ] T025 Meta tags and SEO setup with useHead()
-- [ ] T026 Image optimization with Nuxt Image
+
+- [ ] T021 Generate Prisma client with `prisma generate`
+- [ ] T022 Run database migrations with `prisma migrate dev`
+- [ ] T023 Wire composables (e.g., `composables/useUsers.ts`) to server API via `$fetch`
+- [ ] T024 Configure Vuetify SSR with proper hydration
+- [ ] T025 Integrate Vuetify theme system with `useTheme`
+- [ ] T026 SSR hydration optimization for Vuetify components
+- [ ] T027 Meta tags and SEO setup with `useHead()`
+- [ ] T028 Image optimization with Nuxt Image
+- [ ] T029 [P] Validate MCP server connectivity (SSE at <http://127.0.0.1:8765/sse>)
 
 ## Phase 3.5: Polish
-- [ ] T027 [P] Database integration tests with test database
-- [ ] T028 [P] Prisma schema validation tests
-- [ ] T029 [P] Vuetify component unit tests with Vue Test Utils
-- [ ] T030 [P] Test Vuetify theme customization and breakpoints
-- [ ] T031 Performance tests (Core Web Vitals) with Vuetify optimizations
-- [ ] T032 [P] Update component and database documentation
-- [ ] T033 Bundle size analysis and Vuetify tree-shaking validation
-- [ ] T034 E2E testing with Playwright including Vuetify interactions
+
+- [ ] T030 [P] Database integration tests with test database
+- [ ] T031 [P] Prisma schema validation tests
+- [ ] T032 [P] Vuetify component unit tests with Vue Test Utils
+- [ ] T033 [P] Test Vuetify theme customization and breakpoints
+- [ ] T034 Performance tests (Core Web Vitals) with Vuetify optimizations
+- [ ] T035 [P] Update component and database documentation
+- [ ] T036 Bundle size analysis and Vuetify tree-shaking validation
+- [ ] T037 E2E testing with Playwright including Vuetify interactions
 
 ## Dependencies
-- Tests (T004-T006) before implementation (T010-T018)
-- Vuetify setup (T007-T009) before UI implementation (T010, T013, T016, T018)
-- T011 blocks T012, T019
-- T020 blocks T021, T022
-- Implementation before polish (T027-T034)
+
+- Tests (T004-T006) before implementation (T012-T020)
+- Vuetify setup (T007-T009) before UI implementation (T012, T015, T018, T020)
+- MCP setup (T010-T011) before MCP validation (T029)
+- T013 blocks T014, T021
+- T022 blocks T023, T024
+- Implementation before polish (T030-T037)
 
 ## Parallel Example
-```
-# Launch T004-T007 together:
-Task: "Contract test POST /api/users in tests/contract/test_users_post.py"
-Task: "Contract test GET /api/users/{id} in tests/contract/test_users_get.py"
-Task: "Integration test registration in tests/integration/test_registration.py"
-Task: "Integration test auth in tests/integration/test_auth.py"
+
+```text
+# Launch T004–T007 together:
+Task: "Contract test POST /api/users in tests/contract/users.post.spec.ts"
+Task: "Contract test GET /api/users/{id} in tests/contract/users.[id].get.spec.ts"
+Task: "Integration test registration in tests/integration/registration.spec.ts"
+Task: "Integration test auth in tests/integration/auth.spec.ts"
 ```
 
 ## Notes
+
 - [P] tasks = different files, no dependencies
 - Verify tests fail before implementing
 - Commit after each task
 - Avoid: vague tasks, same file conflicts
 
 ## Task Generation Rules
-*Applied during main() execution*
 
-1. **From Contracts**:
+Applied during main() execution.
+
+1. From Contracts:
    - Each contract file → contract test task [P]
    - Each endpoint → implementation task
-   
-2. **From Data Model**:
+
+2. From Data Model:
    - Each entity → model creation task [P]
    - Relationships → service layer tasks
-   
-3. **From User Stories**:
+
+3. From User Stories:
    - Each story → integration test [P]
    - Quickstart scenarios → validation tasks
 
-4. **Ordering**:
+4. Ordering:
    - Setup → Tests → Models → Services → Endpoints → Polish
    - Dependencies block parallel execution
 
 ## Validation Checklist
-*GATE: Checked by main() before returning*
+
+Gate: Checked by main() before returning.
 
 - [ ] All contracts have corresponding tests
 - [ ] All entities have model tasks

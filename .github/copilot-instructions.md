@@ -207,5 +207,20 @@ export default defineEventHandler(async (event) => {
 - ❌ Importing entire Material Design Icons set
 - ❌ Not using Vuetify's theming system for colors/typography
 
+## MCP Tooling (optional)
+
+Prisma MCP kann lokal als optionales Entwickler-Tool genutzt werden. Es ist keine Build- oder Runtime-Abhängigkeit.
+
+- Start lokal (ephemer):
+
+```bash
+npx -y prisma mcp
+```
+
+- Endpoint: <http://127.0.0.1:8765/sse>
+- Editor: Falls ein MCP-Client verwendet wird, lokal binden; keine produktiven Endpunkte konfigurieren.
+- Sicherheit: Keine Secrets in Prompts verwenden; generierte Outputs müssen TypeScript-Checks bestehen und Code-Review passieren.
+- Scope: Nur lokal für Developer-Assistenz; niemals als Produktionsabhängigkeit einsetzen.
+
 ## Constitution Compliance
 All code must comply with the project constitution at `.specify/memory/constitution.md`. The constitution supersedes other practices and requires team approval for deviations.
