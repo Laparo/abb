@@ -1,2 +1,18 @@
+#!/usr/bin/env sh
+set -e
+
+# Fail fast if dependencies are missing
+if [ ! -d node_modules ]; then
+	echo "[husky] node_modules fehlt. Bitte zuerst 'npm ci' ausführen."
+	exit 1
+fi
+
+# Run lint-staged on staged files (Markdown/TS/Vue/…)
 npx --no lint-staged
-npm run typecheck
+
+# Only typecheck when TS or Vue files are part of the commit to speed up pure docs/asset commits
+if git diff --cached --name-only | grep -E '\\.(ts|vue)$' >/dev/null 2>&1; then
+	npm run typecheck
+else
+	echo "[husky] Überspringe Typecheck (keine TS/Vue-Änderungen im Commit)"
+fi
