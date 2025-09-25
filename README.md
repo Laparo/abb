@@ -177,8 +177,8 @@ ABB wird als Nuxt 3 Universal Rendering (SSR) App auf Azure Static Web Apps betr
 ### Provisionierung (Option A – Azure Portal)
 
 1. Im Azure Portal: Static Web App erstellen (Free/Standard)
-2. Source: GitHub, Repository: dieses Repo, Branch: `main`
-3. Build-Konfiguration:
+1. Source: GitHub, Repository: dieses Repo, Branch: `main`
+1. Build-Konfiguration:
 
 - App location: `/`
 - Api location: `.output/server`
@@ -195,9 +195,9 @@ ABB wird als Nuxt 3 Universal Rendering (SSR) App auf Azure Static Web Apps betr
 - `AZURE_TENANT_ID`
 - `AZURE_SUBSCRIPTION_ID`
 
-2. Optional statt OIDC: `AZURE_STATIC_WEB_APPS_API_TOKEN` setzen (weniger flexibel)
+1. Optional statt OIDC: `AZURE_STATIC_WEB_APPS_API_TOKEN` setzen (weniger flexibel)
 
-3. Push auf `main` (Production) oder PR gegen `main` (Preview) auslösen – der Workflow `Azure Static Web Apps` baut und deployed nach erfolgreichen Quality Gates
+1. Push auf `main` (Production) oder PR gegen `main` (Preview) auslösen – der Workflow `Azure Static Web Apps` baut und deployed nach erfolgreichen Quality Gates
 
 Hinweis: Die Pfade sind ebenfalls in der Projektverfassung und im Workflow dokumentiert.
 
