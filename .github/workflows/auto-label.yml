@@ -1,0 +1,82 @@
+name: Auto Label PRs
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  autolabel:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Apply label by branch prefix
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          label=""
+          case "$HEAD_REF" in
+            feature/*) label="feature" ;;
+            fix/*) label="fix" ;;
+            chore/*) label="chore" ;;
+            docs/*) label="docs" ;;
+            hotfix/*) label="hotfix" ;;
+            api/*) label="api" ;;
+            ci/*) label="ci" ;;
+            build/*) label="build" ;;
+            refactor/*) label="refactor" ;;
+          esac
+          if [ -n "$label" ]; then
+            echo "Applying label: $label"
+            curl -s -X POST \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/labels" \
+              -d "{\"labels\":[\"$label\"]}" >/dev/null
+          fi
+
+      - name: Detect and apply path-based labels (via GitHub API)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Fetch changed files via GitHub API (handles forks safely)
+          files_tmp=$(mktemp)
+          page=1
+          while :; do
+            resp=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${REPO}/pulls/${PR_NUMBER}/files?per_page=100&page=${page}")
+            count=$(echo "$resp" | jq 'length')
+            echo "$resp" | jq -r '.[].filename' >> "$files_tmp"
+            [ "$count" -lt 100 ] && break || page=$((page+1))
+          done
+          sort -u "$files_tmp" > "$files_tmp.sorted"
+          cat "$files_tmp.sorted"
+
+          add_label() {
+            curl -s -X POST \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${REPO}/issues/${PR_NUMBER}/labels" \
+              -d "{\"labels\":[\"$1\"]}" >/dev/null
+          }
+
+          if grep -E '(^|/)prisma/(schema\.prisma|migrations/)' "$files_tmp.sorted" >/dev/null; then add_label db; fi
+          if grep -E '(^|/)components/|(^|/)pages/|(^|/)plugins/vuetify' "$files_tmp.sorted" >/dev/null; then add_label ui; fi
+          if grep -E '(^|/)tests?/|(^|/)__tests__/|(^|/)e2e/' "$files_tmp.sorted" >/dev/null; then add_label tests; fi
+          if grep -E '(^|/)nuxt\.config\.(js|ts)$' "$files_tmp.sorted" >/dev/null; then add_label ui; fi
+          if grep -E '(^|/)composables/' "$files_tmp.sorted" >/dev/null; then add_label ui; fi
+          if grep -E '(^|/)public/|(^|/)assets/' "$files_tmp.sorted" >/dev/null; then add_label ui; fi
+          if grep -E '(^|/)app\.vue$|(^|/)app\.config\.(js|ts)$' "$files_tmp.sorted" >/dev/null; then add_label seo; fi
+          if grep -E '(^|/)README\.md$|(^|/)docs/|(^|/)specs/|(^|/)\.specify/' "$files_tmp.sorted" >/dev/null; then add_label docs; fi
+          # specs/ tragen zusätzlich das tests-Label (Test-Spezifikationen)
+          if grep -E '(^|/)specs/' "$files_tmp.sorted" >/dev/null; then add_label tests; fi
+          if grep -E '(^|/)server/api/|(^|/)server/routes/' "$files_tmp.sorted" >/dev/null; then add_label api; fi
+          if grep -E '(^|/)\.github/workflows/|(^|/)\.github/labels\.yml' "$files_tmp.sorted" >/dev/null; then add_label ci; fi
+          if grep -E '(^|/)vite\.config\.(js|ts)$|(^|/)playwright\.config\.(js|ts)$|(^|/)vitest\.config\.(js|ts)$' "$files_tmp.sorted" >/dev/null; then add_label build; fi
+          if grep -E '(^|/)tsconfig\.json$|(^|/)eslint|(^|/)prettier' "$files_tmp.sorted" >/dev/null; then add_label build; fi
+          if grep -E '(^|/)composables/|(^|/)components/' "$files_tmp.sorted" >/dev/null && ! grep -E '(^|/)tests?/' "$files_tmp.sorted" >/dev/null; then add_label refactor; fi

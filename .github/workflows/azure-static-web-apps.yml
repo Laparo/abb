@@ -1,0 +1,101 @@
+name: Azure Static Web Apps
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  quality:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Quality Gates
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit/Component Tests
+        run: npm run test
+
+      - name: E2E Tests
+        run: npm run test:e2e
+
+  build_and_deploy:
+    needs: quality
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build and Deploy to Azure Static Web Apps
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and Deploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          # Bevorzugt OIDC (oben). Alternativ kann ein statisches Token genutzt werden:
+          # azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: "/"
+          api_location: ".output/server"
+          output_location: ".output/public"
+          app_build_command: npm ci && npm run build
+
+      - name: Prisma migrate deploy (Production)
+        if: github.ref == 'refs/heads/main'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PRISMA_SCHEMA: prisma/schema.prod.prisma
+        run: |
+          if [ ! -f "$PRISMA_SCHEMA" ]; then
+            echo "WARN: $PRISMA_SCHEMA not found. Falling back to default schema.prisma";
+            export PRISMA_SCHEMA=prisma/schema.prisma;
+          fi
+          npx prisma migrate deploy
+
+  close_pull_request:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Close Azure SWA PR Environment
+    steps:
+      - name: Close PR Environment
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          # Falls kein OIDC verwendet wird, muss hier ein Token hinterlegt sein:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: close

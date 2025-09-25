@@ -1,0 +1,25 @@
+name: PR Title Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  lint-title:
+    name: Validate PR title (Conventional Commits)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title matches Conventional Commits
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "Title: $TITLE"
+          if echo "$TITLE" | grep -Eq '^(feat|fix|chore|docs|refactor|test|perf|build|ci|revert|style)(\(.+\))?(!)?:\s.+'; then
+            echo "PR title OK"
+          else
+            echo "Invalid PR title. Use Conventional Commits, e.g.:" >&2
+            echo "  feat(auth): add OAuth login" >&2
+            echo "  fix(api): handle null payloads" >&2
+            echo "  chore: update dependencies" >&2
+            exit 1
+          fi

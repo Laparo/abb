@@ -1,0 +1,44 @@
+name: Branch Policy Checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  validate:
+    name: Validate branch naming and PR policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check base branch is main
+        if: ${{ github.base_ref != 'main' }}
+        run: |
+          echo "PR base branch must be 'main'. Found: '${{ github.base_ref }}'" >&2
+          exit 1
+
+      - name: Validate head branch name pattern
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          echo "Checking branch name: $HEAD_REF"
+          if echo "$HEAD_REF" | grep -Eq '^(feature|fix|chore|docs|hotfix|api|ci|build|refactor)\/[a-z0-9._-]+$'; then
+            echo "Branch name OK"
+          else
+            echo "Branch name must match: (feature|fix|chore|docs|hotfix|api|ci|build|refactor)/<kurz-und-klar> (lowercase, -, _, . allowed)" >&2
+            exit 1
+          fi
+
+      - name: Block merge commits in PR (rebase preferred)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ensure no merge commits in PR commits
+        run: |
+          BASE_SHA=$(git merge-base origin/${{ github.base_ref }} HEAD)
+          echo "Base SHA: $BASE_SHA"
+          # List commits in the PR range and detect merge commits (parents > 1)
+          if git rev-list ${BASE_SHA}..HEAD --pretty='%P' | awk 'NF>1{print}' | grep -q .; then
+            echo "Merge commits detected in PR. Please rebase to linear history." >&2
+            exit 1
+          else
+            echo "No merge commits detected."
+          fi

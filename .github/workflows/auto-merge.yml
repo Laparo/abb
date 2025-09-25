@@ -1,0 +1,21 @@
+name: Auto Merge PRs
+
+on:
+  pull_request_target:
+    types: [labeled, synchronize, ready_for_review]
+
+jobs:
+  enable-auto-merge:
+    if: contains(github.event.pull_request.labels.*.name, 'automerge')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Enable GitHub auto-merge (squash)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_ID: ${{ github.event.pull_request.node_id }}
+        run: |
+          # Enable auto merge via GraphQL API (squash)
+          gh api graphql -f query='mutation($pr:ID!){ enablePullRequestAutoMerge(input:{pullRequestId:$pr, mergeMethod:SQUASH}){ clientMutationId }}' -f pr=$PR_ID || true

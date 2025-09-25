@@ -1,0 +1,43 @@
+labels:
+  - name: feature
+    color: 1D76DB
+    description: Feature work
+  - name: fix
+    color: DB1D1D
+    description: Bug fix
+  - name: chore
+    color: 6A737D
+    description: Chore / maintenance
+  - name: docs
+    color: 0E8A16
+    description: Documentation changes
+  - name: hotfix
+    color: B60205
+    description: Hotfix for production
+  - name: db
+    color: 5319E7
+    description: Prisma schema/migration changes
+  - name: ui
+    color: FBCA04
+    description: UI/Vuetify changes
+  - name: tests
+    color: 1D76DB
+    description: Tests changed/added
+  - name: seo
+    color: 0E8A16
+    description: SEO/meta changes
+  - name: api
+    color: 0052CC
+    description: Server API/composables contracts
+  - name: ci
+    color: 5319E7
+    description: CI & pipelines
+  - name: build
+    color: 5319E7
+    description: Build tooling & configs
+  - name: refactor
+    color: 6A737D
+    description: Internal refactors without behavior change
+  - name: automerge
+    color: 0366D6
+    description: Enable auto-merge (squash) when all required checks pass

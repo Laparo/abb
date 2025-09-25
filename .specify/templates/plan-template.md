@@ -1,4 +1,3 @@
-
 # Implementation Plan: [FEATURE]
 
 **Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
@@ -33,6 +32,7 @@
 - Phase 3-4: Implementation execution (manual or via tools)
 
 ## Summary
+
 [Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
@@ -103,6 +103,13 @@ Gate: Must pass before Phase 0 research. Re-check after Phase 1 design.
 - ✅ No production dependency on MCP; optional for developer tooling
 - ✅ No secrets in prompts; outputs pass type checks and code review
 
+### IX. Git Branching Standards
+
+- ✅ Work occurs on a topic branch; no direct commits to `main`
+- ✅ Branch name follows schema (e.g., `feature/<issueId>-<kebab-slug>`)
+- ✅ PR links to related issue and `specs/[###-feature]/` directory
+- ✅ Linear history preferred (rebase before opening PR)
+
 ## Project Structure
 
 ### Documentation (this feature)
@@ -149,17 +156,17 @@ specs/[###-feature]/
    - For each dependency → best practices task
    - For each integration → patterns task
 
-2. **Generate and dispatch research agents**:
-  
+1. **Generate and dispatch research agents**:
+
    ```text
-  
+
    For each unknown in Technical Context:
      Task: "Research {unknown} for {feature context}"
    For each technology choice:
      Task: "Find best practices for {tech} in {domain}"
    ```
 
-3. **Consolidate findings** in `research.md` using format:
+1. **Consolidate findings** in `research.md` using format:
    - Decision: [what was chosen]
    - Rationale: [why chosen]
    - Alternatives considered: [what else evaluated]
@@ -175,21 +182,21 @@ Prerequisite: research.md complete.
    - Validation rules from requirements
    - State transitions if applicable
 
-2. **Generate API contracts** from functional requirements:
+1. **Generate API contracts** from functional requirements:
    - For each user action → endpoint
    - Use standard REST/GraphQL patterns
    - Output OpenAPI/GraphQL schema to `/contracts/`
 
-3. **Generate contract tests** from contracts:
+1. **Generate contract tests** from contracts:
    - One test file per endpoint
    - Assert request/response schemas
    - Tests must fail (no implementation yet)
 
-4. **Extract test scenarios** from user stories:
+1. **Extract test scenarios** from user stories:
    - Each story → integration test scenario
    - Quickstart test = story validation steps
 
-5. **Update agent file incrementally** (O(1) operation):
+1. **Update agent file incrementally** (O(1) operation):
    - Run `.specify/scripts/bash/update-agent-context.sh copilot`
      **IMPORTANT**: Execute it exactly as specified above. Do not add or remove any arguments.
    - If exists: Add only NEW tech from current plan
@@ -198,7 +205,7 @@ Prerequisite: research.md complete.
    - Keep under 150 lines for token efficiency
    - Output to repository root
 
-**Output**: data-model.md, /contracts/*, failing tests, quickstart.md, agent-specific file
+**Output**: data-model.md, /contracts/\*, failing tests, quickstart.md, agent-specific file
 
 ## Phase 2: Task Planning Approach
 
@@ -235,11 +242,10 @@ Scope: These phases are beyond the scope of the /plan command.
 
 Fill ONLY if Constitution Check has violations that must be justified.
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
-
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
 
 ## Progress Tracking
 
@@ -262,4 +268,5 @@ This checklist is updated during execution flow.
 - [ ] Complexity deviations documented
 
 ---
-*Based on Constitution v1.3.0 - See `/.specify/memory/constitution.md`*
+
+_Based on Constitution v1.3.0 - See `/.specify/memory/constitution.md`_
