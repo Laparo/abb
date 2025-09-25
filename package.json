@@ -1,0 +1,74 @@
+{
+  "name": "abb",
+  "version": "0.1.0",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "description": "ABB – Nuxt 3 + TypeScript + Vuetify + Prisma",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "lint": "eslint . --ext .ts,.vue --max-warnings=0",
+    "typecheck": "nuxi typecheck",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prepare": "husky install",
+    "lint:md": "markdownlint README.md docs/**/*.md"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.18.0",
+    "nuxt": "^3.12.0",
+    "vuetify": "^3.6.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.2.2",
+    "@eslint/js": "^9.12.0",
+    "@playwright/test": "^1.47.0",
+    "@types/jest-axe": "^3.5.9",
+    "@types/node": "^20.19.17",
+    "@typescript-eslint/eslint-plugin": "^8.8.1",
+    "@typescript-eslint/parser": "^8.8.1",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/coverage-v8": "^1.6.1",
+    "@vue/test-utils": "^2.4.6",
+    "axe-core": "^4.10.0",
+    "eslint": "^9.12.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-vue": "^9.28.0",
+    "husky": "^9.1.6",
+    "jest-axe": "^9.0.0",
+    "jsdom": "^24.0.0",
+    "lint-staged": "^15.2.9",
+    "prettier": "^3.3.3",
+    "markdownlint-cli": "^0.45.0",
+    "prisma": "^5.18.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.44.1",
+    "vite-plugin-vuetify": "^2.0.3",
+    "vitest": "^1.6.0",
+    "vue-tsc": "^2.0.20"
+  },
+  "lint-staged": {
+    "*.{ts,vue}": [
+      "eslint --fix"
+    ],
+    "*.{js,cjs,mjs,ts,vue,json,md,css,scss}": [
+      "prettier --write"
+    ]
+  },
+  "overrides": {
+    "esbuild": "^0.25.10"
+  }
+}

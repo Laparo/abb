@@ -1,0 +1,146 @@
+name: Web CI (Nuxt/TS/Vitest/Playwright)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: web-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    name: Docs • Markdownlint
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect Markdown changes
+        id: changed
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            **/*.md
+
+      - name: Setup Node.js
+        if: ${{ steps.changed.outputs.any_changed == 'true' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install deps (npm ci)
+        if: ${{ steps.changed.outputs.any_changed == 'true' }}
+        run: npm ci
+
+      - name: Markdownlint
+        if: ${{ steps.changed.outputs.any_changed == 'true' }}
+        run: npm run -s lint:md
+
+  frontend:
+    name: Frontend Lint • Typecheck • Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect Node project
+        id: detect
+        run: |
+          if [ -f package.json ]; then
+            echo "has_node=true" >> $GITHUB_OUTPUT
+            LINT=$(node -e "try{process.stdout.write((require('./package.json').scripts||{}).lint?'true':'false')}catch(e){process.stdout.write('false')}")
+            TYPECHECK=$(node -e "try{process.stdout.write((require('./package.json').scripts||{}).typecheck?'true':'false')}catch(e){process.stdout.write('false')}")
+            UNIT=$(node -e "try{const s=(require('./package.json').scripts||{});process.stdout.write((s.test||s['test:unit'])?'true':'false')}catch(e){process.stdout.write('false')}")
+            E2E=$(node -e "try{const s=(require('./package.json').scripts||{});process.stdout.write((s['test:e2e']||s.playwright)?'true':'false')}catch(e){process.stdout.write('false')}")
+            echo "lint=$LINT" >> $GITHUB_OUTPUT
+            echo "typecheck=$TYPECHECK" >> $GITHUB_OUTPUT
+            echo "unit=$UNIT" >> $GITHUB_OUTPUT
+            echo "e2e=$E2E" >> $GITHUB_OUTPUT
+          else
+            echo "has_node=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        if: ${{ steps.detect.outputs.has_node == 'true' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Use PNPM if present
+        if: ${{ steps.detect.outputs.has_node == 'true' && hashFiles('pnpm-lock.yaml') != '' }}
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Enable Corepack (Yarn/Pnpm)
+        if: ${{ steps.detect.outputs.has_node == 'true' }}
+        run: corepack enable
+
+      - name: Install dependencies (pnpm)
+        if: ${{ steps.detect.outputs.has_node == 'true' && hashFiles('pnpm-lock.yaml') != '' }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Install dependencies (yarn)
+        if: ${{ steps.detect.outputs.has_node == 'true' && hashFiles('yarn.lock') != '' && hashFiles('pnpm-lock.yaml') == '' }}
+        run: yarn install --frozen-lockfile
+
+      - name: Install dependencies (npm)
+        if: ${{ steps.detect.outputs.has_node == 'true' && hashFiles('package-lock.json') != '' && hashFiles('pnpm-lock.yaml') == '' && hashFiles('yarn.lock') == '' }}
+        run: npm ci
+
+      - name: Install dependencies (npm fallback)
+        if: ${{ steps.detect.outputs.has_node == 'true' && hashFiles('package-lock.json') == '' && hashFiles('pnpm-lock.yaml') == '' && hashFiles('yarn.lock') == '' }}
+        run: npm install --no-audit --no-fund
+
+      - name: Lint
+        if: ${{ steps.detect.outputs.has_node == 'true' && steps.detect.outputs.lint == 'true' }}
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm run lint; \
+          elif [ -f yarn.lock ]; then yarn lint; \
+          else npm run lint; fi
+
+      - name: Typecheck
+        if: ${{ steps.detect.outputs.has_node == 'true' && steps.detect.outputs.typecheck == 'true' }}
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm run typecheck; \
+          elif [ -f yarn.lock ]; then yarn typecheck; \
+          else npm run typecheck; fi
+
+      - name: Unit Tests (Vitest)
+        if: ${{ steps.detect.outputs.has_node == 'true' && steps.detect.outputs.unit == 'true' }}
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm run test -- --reporter=dot; \
+          elif [ -f yarn.lock ]; then yarn test --reporter=dot; \
+          else npm test -- --reporter=dot; fi
+
+      - name: Install Playwright Browsers
+        if: ${{ steps.detect.outputs.has_node == 'true' && steps.detect.outputs.e2e == 'true' }}
+        run: npx playwright install --with-deps
+
+      - name: E2E Tests (Playwright)
+        if: ${{ steps.detect.outputs.has_node == 'true' && steps.detect.outputs.e2e == 'true' }}
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm run test:e2e; \
+          elif [ -f yarn.lock ]; then yarn test:e2e; \
+          else npm run test:e2e; fi
+
+      - name: Upload Playwright Report
+        if: ${{ always() && steps.detect.outputs.has_node == 'true' && steps.detect.outputs.e2e == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Vitest Coverage Report
+        if: ${{ always() && steps.detect.outputs.has_node == 'true' && steps.detect.outputs.unit == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-coverage
+          path: coverage
+          if-no-files-found: ignore
