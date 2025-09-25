@@ -61,6 +61,9 @@
     "vue-tsc": "^2.0.20"
   },
   "lint-staged": {
+    "*.md": [
+      "markdownlint"
+    ],
     "*.{ts,vue}": [
       "eslint --fix"
     ],
