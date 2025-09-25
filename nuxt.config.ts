@@ -25,5 +25,8 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vuetify'],
   },
-  nitro: {},
+  nitro: {
+    // Pin Nitro runtime behavior to a known date (see https://nitro.build/deploy#compatibility-date)
+    compatibilityDate: '2025-09-26',
+  },
 })
