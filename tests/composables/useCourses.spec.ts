@@ -6,7 +6,7 @@ vi.stubGlobal(
     if (url === '/api/courses') {
       return { data: [{ id: 1, title: 'A' }], error: null }
     }
-    if (url?.startsWith('/api/courses-')) {
+    if (url?.startsWith('/api/courses/')) {
       return { data: { id: 2, title: 'B' }, error: null }
     }
     return { data: null, error: new Error('not found') }

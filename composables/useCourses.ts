@@ -14,7 +14,7 @@ export const useCourses = () => {
   }
 
   const getById = async (id: number) => {
-    const { data, error } = await useFetch<CourseListItem | null>(`/api/courses-${id}`)
+    const { data, error } = await useFetch<CourseListItem | null>(`/api/courses/${id}`)
     return { data, error }
   }
 

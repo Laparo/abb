@@ -11,7 +11,7 @@ vi.mock('@prisma/client', () => {
   }
 })
 
-describe('GET /api/courses-[id]', () => {
+describe('GET /api/courses/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -21,7 +21,7 @@ describe('GET /api/courses-[id]', () => {
       id: 1,
       materials: [{ id: 10, type: 'LINK', title: 'Doc' }],
     })
-    const mod = await import('../../server/api/courses-[id].get')
+    const mod = await import('../../server/api/courses/[id].get')
     type Event = { context: { params: { id: string } } }
     const handler = mod.default as unknown as (e: Event) => Promise<unknown>
     const res = await handler({ context: { params: { id: '1' } } })
@@ -30,7 +30,7 @@ describe('GET /api/courses-[id]', () => {
   })
 
   it('400 on invalid id', async () => {
-    const mod = await import('../../server/api/courses-[id].get')
+    const mod = await import('../../server/api/courses/[id].get')
     type Event = { context: { params: { id: string } } }
     const handler = mod.default as unknown as (e: Event) => Promise<unknown>
     await expect(handler({ context: { params: { id: 'NaN' } } })).rejects.toMatchObject({
@@ -40,7 +40,7 @@ describe('GET /api/courses-[id]', () => {
 
   it('404 when not found', async () => {
     mockFindUnique.mockResolvedValueOnce(null)
-    const mod = await import('../../server/api/courses-[id].get')
+    const mod = await import('../../server/api/courses/[id].get')
     type Event = { context: { params: { id: string } } }
     const handler = mod.default as unknown as (e: Event) => Promise<unknown>
     await expect(handler({ context: { params: { id: '999' } } })).rejects.toMatchObject({
