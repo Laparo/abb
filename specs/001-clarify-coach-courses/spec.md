@@ -14,6 +14,7 @@ Der öffentliche Bereich stellt mein Angebot als Coach vor und ermöglicht es In
 - Q: Sollen Videos nur gestreamt werden oder auch als Download verfügbar sein? → A: Nur Streaming, kein Download.
 - Q: Welche Kanäle sollen wir für Buchungsbestätigungen und wichtige Konto-/Kurs-Ereignisse nutzen? → A: Nur E‑Mail (Standard).
 - Q: Wie sollen Aufbewahrung und Löschung personenbezogener Daten geregelt sein? → A: Löschung nur auf Anforderung; keine automatische Frist.
+- Q: Welche Stornoregelung soll gelten? → A: Kostenfreie Storno bis 14 Tage vor Start; danach keine Storno.
 
 ## User Scenarios & Testing
 
@@ -49,6 +50,7 @@ Als Interessent möchte ich die Coaching-Angebote einsehen und einen passenden K
 - **FR-010**: Das System MUSS den Umgang mit personenbezogenen Daten gemäß geltender Vorschriften sicherstellen; Daten werden auf Anforderung gelöscht (DSGVO-konform), es gibt keine automatische Löschfrist.
 - **FR-011**: Nach Kursabschluss bleibt der Zugriff auf Kursunterlagen unbegrenzt bestehen, bis zur Kündigung oder Konto-Löschung.
 - **FR-012**: Videos sind ausschließlich per Streaming abrufbar; Downloads sind nicht verfügbar.
+- **FR-013**: Stornobedingungen: Kostenfreie Stornierung bis 14 Tage vor Kursstart; innerhalb von 14 Tagen vor Kursstart ist keine Stornierung mehr möglich.
 
 ### Key Entities
 
