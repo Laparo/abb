@@ -165,6 +165,30 @@ PRs werden automatisch gelabelt, basierend auf Branch-Prefixen und geänderten P
 - Komponenten mit Vuetify testen: `tests/utils/mountWithVuetify.ts` verwenden
 - Coverage-Bericht: `npm run test:coverage` (HTML-Report unter `coverage/`)
 
+### Lokaler Produktionslauf
+
+Für einen lokalen Start im produktionsähnlichen Modus (Nitro Node-Server) gibt es zwei Varianten:
+
+```bash
+# 1) Lokal mit .env laden (empfohlen für Entwicklung)
+npm run build
+npm run start:local:prod
+
+# 2) Reines Produktions-Startskript (ENV muss extern gesetzt sein)
+npm run build
+npm run start:prod
+```
+
+Hinweise:
+
+- `start:local:prod` lädt Variablen aus `.env` (z. B. `DATABASE_URL` für Prisma/DB).
+- Migrationen laufen nicht automatisch. Stelle sicher, dass die Datenbank migriert/initialisiert ist:
+  - Lokal/CI (SQLite): `npm run prisma:migrate` und optional `npm run prisma:seed`.
+  - Produktion (Azure SQL): Der GitHub Workflow führt auf `main` `prisma migrate deploy` mit `PRISMA_SCHEMA=prisma/schema.prod.prisma` aus.
+- Troubleshooting:
+  - Prisma Fehler `P1001` → Datenbank nicht erreichbar/Connection String prüfen.
+  - Fehlende Tabellen → Migrationen ausführen (`prisma migrate deploy/dev`).
+
 ## License
 
 GNU General Public License v3.0 – siehe [LICENSE](LICENSE)

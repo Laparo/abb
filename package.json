@@ -12,8 +12,11 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "start": "nuxt start",
+    "start:prod": "node .output/server/index.mjs",
+    "start:e2e": "dotenv -e .env.e2e -- node .output/server/index.mjs",
+    "start:local:prod": "dotenv -e .env -- node .output/server/index.mjs",
     "lint": "eslint . --ext .ts,.vue --max-warnings=0",
-    "typecheck": "nuxi typecheck",
+    "typecheck": "prisma generate && nuxi typecheck",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:watch": "vitest",
@@ -21,7 +24,9 @@
     "test:e2e": "playwright test",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:seed": "tsx prisma/seed.ts",
     "prepare": "husky install",
+    "postinstall": "prisma generate || true",
     "lint:md": "markdownlint README.md docs/**/*.md",
     "mcp:prisma": "prisma mcp"
   },
@@ -52,14 +57,19 @@
     "jest-axe": "^9.0.0",
     "jsdom": "^24.0.0",
     "lint-staged": "^15.2.9",
+    "dotenv-cli": "^7.4.1",
     "markdownlint-cli": "^0.45.0",
     "prettier": "^3.3.3",
     "prisma": "^5.18.0",
     "typescript": "^5.9.2",
+    "tsx": "^4.19.1",
     "typescript-eslint": "^8.44.1",
     "vite-plugin-vuetify": "^2.0.3",
     "vitest": "^1.6.0",
     "vue-tsc": "^2.0.20"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "lint-staged": {
     "*.md": [
