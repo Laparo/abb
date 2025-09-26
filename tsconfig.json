@@ -10,7 +10,10 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "types": ["vitest/globals", "node", "@playwright/test"],
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@dashboard/*": ["../vuetify-material-dashboard/src/*"]
+    }
   },
   "exclude": ["e2e/**"]
 }

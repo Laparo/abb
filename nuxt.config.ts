@@ -1,5 +1,6 @@
 // Nuxt 3 configuration with Vuetify and TypeScript strict
 import { defineNuxtConfig } from 'nuxt/config'
+import path from 'node:path'
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 export default defineNuxtConfig({
@@ -19,6 +20,18 @@ export default defineNuxtConfig({
     // Vuetify via Vite plugin
     ssr: {
       noExternal: ['vuetify'],
+    },
+    server: {
+      fs: {
+        // Zugriff auf externes Dashboard-Repo (Sibling) erlauben
+        allow: [path.resolve(__dirname, '../vuetify-material-dashboard')],
+      },
+    },
+    resolve: {
+      alias: {
+        // Lokale Dashboard-Komponentenquelle (siehe specs/coach-courses/quickstart.md)
+        '@dashboard': path.resolve(__dirname, '../vuetify-material-dashboard/src'),
+      },
     },
     vue: {
       template: {
