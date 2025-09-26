@@ -11,6 +11,7 @@ Der öffentliche Bereich stellt mein Angebot als Coach vor und ermöglicht es In
 ### Session 2025-09-26
 
 - Q: Wie lange sollen Kund:innen nach Kursabschluss weiterhin Zugriff auf die Kursunterlagen (Texte/Videos) haben? → A: Unbegrenzt, bis Kündigung/Konto-Löschung.
+- Q: Sollen Videos nur gestreamt werden oder auch als Download verfügbar sein? → A: Nur Streaming, kein Download.
 
 ## User Scenarios & Testing
 
@@ -27,7 +28,6 @@ Als Interessent möchte ich die Coaching-Angebote einsehen und einen passenden K
 ### Edge Cases
 
 - Was passiert bei fehlgeschlagenem Login (falsches Passwort, gesperrter Account)? [NEEDS CLARIFICATION]
-- Dürfen Videos heruntergeladen werden oder nur gestreamt werden? [NEEDS CLARIFICATION]
 - Welche Stornobedingungen gelten (Fristen, Gebühren)? [NEEDS CLARIFICATION]
 - Wie wird mit ausgebuchten Kursen umgegangen (Warteliste)? [NEEDS CLARIFICATION]
 
@@ -46,6 +46,7 @@ Als Interessent möchte ich die Coaching-Angebote einsehen und einen passenden K
 - **FR-009**: Das System MUSS einen Login-Prozess über einen externen, vertrauenswürdigen Identitätsanbieter mit Self-Service-Registrierung und Passwort-Reset anbieten.
 - **FR-010**: Das System MUSS den Umgang mit personenbezogenen Daten gemäß geltender Vorschriften sicherstellen. [NEEDS CLARIFICATION: Aufbewahrung/Löschung]
 - **FR-011**: Nach Kursabschluss bleibt der Zugriff auf Kursunterlagen unbegrenzt bestehen, bis zur Kündigung oder Konto-Löschung.
+- **FR-012**: Videos sind ausschließlich per Streaming abrufbar; Downloads sind nicht verfügbar.
 
 ### Key Entities
 
@@ -75,7 +76,7 @@ Als Interessent möchte ich die Coaching-Angebote einsehen und einen passenden K
 
 - Identitäts- & Zugangsmanagement (Registrierung, Login, Passwort-Reset, Profilverwaltung) wird durch einen externen Anbieter bereitgestellt. Vorgesehen ist Microsoft Entra External ID (CIAM). Die Anwendung speichert nur minimal erforderliche Zuordnungen (z.\ B. `sub/oid` → interner Nutzer) und keine Passwörter.
 - Benachrichtigung (E-Mail) erfolgt über einen externen Provider (TBD: Resend/SES/SendGrid), inkl. Domain-Setup (SPF/DKIM) und mehrsprachigen Templates.
-- Video-Bereitstellung erfolgt als Streaming über gesicherte Endpunkte/CDN (Details TBD; kein ungeschützter Download vorgesehen).
+- Video-Bereitstellung erfolgt ausschließlich als Streaming über gesicherte Endpunkte/CDN; Downloads sind nicht verfügbar.
 
 ## Execution Status
 
