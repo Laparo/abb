@@ -38,7 +38,7 @@ Als Interessent möchte ich die Coaching-Angebote einsehen und einen passenden K
 - **FR-006**: Das System MUSS den Zugriff auf Kursunterlagen abhängig von Kursstatus und Nutzerberechtigungen steuern (z. B. nur für gebuchte/aktive Kurse).
 - **FR-007**: Das System MUSS Buchungsbestätigungen bereitstellen (z. B. Bestätigungsseite und Benachrichtigung). [NEEDS CLARIFICATION: Benachrichtigungskanal]
 - **FR-008**: Das System MUSS eine Such-/Filtermöglichkeit nach Kursen im öffentlichen Bereich bereitstellen. [optional]
-- **FR-009**: Das System MUSS einen Login-Prozess anbieten. [NEEDS CLARIFICATION: Auth-Methode]
+- **FR-009**: Das System MUSS einen Login-Prozess über einen externen, vertrauenswürdigen Identitätsanbieter mit Self-Service-Registrierung und Passwort-Reset anbieten.
 - **FR-010**: Das System MUSS den Umgang mit personenbezogenen Daten gemäß geltender Vorschriften sicherstellen. [NEEDS CLARIFICATION: Aufbewahrung/Löschung]
 
 ### Key Entities
@@ -64,6 +64,12 @@ Als Interessent möchte ich die Coaching-Angebote einsehen und einen passenden K
 - [ ] Erfolgskriterien sind messbar
 - [ ] Umfang ist klar begrenzt
 - [ ] Abhängigkeiten und Annahmen beschrieben
+
+## Annahmen & Abhängigkeiten
+
+- Identitäts- & Zugangsmanagement (Registrierung, Login, Passwort-Reset, Profilverwaltung) wird durch einen externen Anbieter bereitgestellt. Vorgesehen ist Microsoft Entra External ID (CIAM). Die Anwendung speichert nur minimal erforderliche Zuordnungen (z.\ B. `sub/oid` → interner Nutzer) und keine Passwörter.
+- Benachrichtigung (E-Mail) erfolgt über einen externen Provider (TBD: Resend/SES/SendGrid), inkl. Domain-Setup (SPF/DKIM) und mehrsprachigen Templates.
+- Video-Bereitstellung erfolgt als Streaming über gesicherte Endpunkte/CDN (Details TBD; kein ungeschützter Download vorgesehen).
 
 ## Execution Status
 
