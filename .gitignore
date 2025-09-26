@@ -91,6 +91,11 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+.output
+
+# Test/E2E reports and artifacts
+playwright-report
+test-results
 
 # Gatsby files
 .cache/
