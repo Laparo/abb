@@ -22,7 +22,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "prepare": "husky install",
-    "lint:md": "markdownlint README.md docs/**/*.md"
+    "lint:md": "markdownlint README.md docs/**/*.md",
+    "mcp:prisma": "prisma mcp"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",

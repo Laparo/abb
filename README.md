@@ -57,6 +57,10 @@ npm test
 npm run test:e2e
 ```
 
+### Optional: MCP (lokal)
+
+Siehe `docs/MCP.md` für einen lokalen, ephemeren Prisma MCP-Server und die VS Code Anbindung.
+
 ### Spec-Driven Development
 
 This project uses GitHub Spec Kit for structured development. Available commands:
