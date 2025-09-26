@@ -1,9 +1,7 @@
 <template>
-  <v-app>
-    <v-main tag="main" role="main">
-      <NuxtPage />
-    </v-main>
-  </v-app>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>
 
 <script setup lang="ts">
