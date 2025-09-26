@@ -12,6 +12,7 @@ Der öffentliche Bereich stellt mein Angebot als Coach vor und ermöglicht es In
 
 - Q: Wie lange sollen Kund:innen nach Kursabschluss weiterhin Zugriff auf die Kursunterlagen (Texte/Videos) haben? → A: Unbegrenzt, bis Kündigung/Konto-Löschung.
 - Q: Sollen Videos nur gestreamt werden oder auch als Download verfügbar sein? → A: Nur Streaming, kein Download.
+- Q: Welche Kanäle sollen wir für Buchungsbestätigungen und wichtige Konto-/Kurs-Ereignisse nutzen? → A: Nur E‑Mail (Standard).
 
 ## User Scenarios & Testing
 
@@ -41,7 +42,7 @@ Als Interessent möchte ich die Coaching-Angebote einsehen und einen passenden K
 - **FR-004**: Angemeldete Nutzer MÜSSEN ihre gebuchten Kurse einsehen und verwalten können (z. B. Status, Termine, Storno).
 - **FR-005**: Angemeldete Nutzer MÜSSEN Kursunterlagen pro Kurs abrufen können, mindestens Textdokumente und Videos.
 - **FR-006**: Das System MUSS den Zugriff auf Kursunterlagen abhängig von Kursstatus und Nutzerberechtigungen steuern (z. B. nur für gebuchte/aktive Kurse).
-- **FR-007**: Das System MUSS Buchungsbestätigungen bereitstellen (z. B. Bestätigungsseite und Benachrichtigung). [NEEDS CLARIFICATION: Benachrichtigungskanal]
+- **FR-007**: Das System MUSS Buchungsbestätigungen per E‑Mail bereitstellen (Bestätigungsseite + E‑Mail); wichtige Konto-/Kurs-Ereignisse ebenfalls per E‑Mail. Keine weiteren Kanäle.
 - **FR-008**: Das System MUSS eine Such-/Filtermöglichkeit nach Kursen im öffentlichen Bereich bereitstellen. [optional]
 - **FR-009**: Das System MUSS einen Login-Prozess über einen externen, vertrauenswürdigen Identitätsanbieter mit Self-Service-Registrierung und Passwort-Reset anbieten.
 - **FR-010**: Das System MUSS den Umgang mit personenbezogenen Daten gemäß geltender Vorschriften sicherstellen. [NEEDS CLARIFICATION: Aufbewahrung/Löschung]
@@ -75,7 +76,7 @@ Als Interessent möchte ich die Coaching-Angebote einsehen und einen passenden K
 ## Annahmen & Abhängigkeiten
 
 - Identitäts- & Zugangsmanagement (Registrierung, Login, Passwort-Reset, Profilverwaltung) wird durch einen externen Anbieter bereitgestellt. Vorgesehen ist Microsoft Entra External ID (CIAM). Die Anwendung speichert nur minimal erforderliche Zuordnungen (z.\ B. `sub/oid` → interner Nutzer) und keine Passwörter.
-- Benachrichtigung (E-Mail) erfolgt über einen externen Provider (TBD: Resend/SES/SendGrid), inkl. Domain-Setup (SPF/DKIM) und mehrsprachigen Templates.
+- Benachrichtigung erfolgt E‑Mail-only über einen externen Provider (z. B. Resend/SES/SendGrid), inkl. Domain-Setup (SPF/DKIM) und mehrsprachigen Templates.
 - Video-Bereitstellung erfolgt ausschließlich als Streaming über gesicherte Endpunkte/CDN; Downloads sind nicht verfügbar.
 
 ## Execution Status
