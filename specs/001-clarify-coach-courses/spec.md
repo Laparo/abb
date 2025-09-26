@@ -6,6 +6,12 @@
 **Input**: User description: "Ich möchte eine Website erstellen, die einen öffentlichen und einen geschlossen Bereich hat. Der geschlossene Bereich soll durch einen Login geschützt sein. Der geschlossene Bereich erlaubt es Nutzern, gebuchte Kurse zu verwalten und Kursunterlagen einzusehen. Neben Textdokumenten sind auch Videos enthalten.
 Der öffentliche Bereich stellt mein Angebot als Coach vor und ermöglicht es Interessenten Kurse zu buchen."
 
+## Clarifications
+
+### Session 2025-09-26
+
+- Q: Wie lange sollen Kund:innen nach Kursabschluss weiterhin Zugriff auf die Kursunterlagen (Texte/Videos) haben? → A: Unbegrenzt, bis Kündigung/Konto-Löschung.
+
 ## User Scenarios & Testing
 
 ### Primary User Story
@@ -21,7 +27,6 @@ Als Interessent möchte ich die Coaching-Angebote einsehen und einen passenden K
 ### Edge Cases
 
 - Was passiert bei fehlgeschlagenem Login (falsches Passwort, gesperrter Account)? [NEEDS CLARIFICATION]
-- Wie lange bleibt ein Kurs nach Abschluss für den Zugriff auf Unterlagen verfügbar? [NEEDS CLARIFICATION]
 - Dürfen Videos heruntergeladen werden oder nur gestreamt werden? [NEEDS CLARIFICATION]
 - Welche Stornobedingungen gelten (Fristen, Gebühren)? [NEEDS CLARIFICATION]
 - Wie wird mit ausgebuchten Kursen umgegangen (Warteliste)? [NEEDS CLARIFICATION]
@@ -40,6 +45,7 @@ Als Interessent möchte ich die Coaching-Angebote einsehen und einen passenden K
 - **FR-008**: Das System MUSS eine Such-/Filtermöglichkeit nach Kursen im öffentlichen Bereich bereitstellen. [optional]
 - **FR-009**: Das System MUSS einen Login-Prozess über einen externen, vertrauenswürdigen Identitätsanbieter mit Self-Service-Registrierung und Passwort-Reset anbieten.
 - **FR-010**: Das System MUSS den Umgang mit personenbezogenen Daten gemäß geltender Vorschriften sicherstellen. [NEEDS CLARIFICATION: Aufbewahrung/Löschung]
+- **FR-011**: Nach Kursabschluss bleibt der Zugriff auf Kursunterlagen unbegrenzt bestehen, bis zur Kündigung oder Konto-Löschung.
 
 ### Key Entities
 
