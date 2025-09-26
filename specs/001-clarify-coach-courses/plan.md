@@ -53,7 +53,7 @@ composables/
   useMaterials.ts                # Zugriff auf Unterlagen (Streaming)
 server/api/
   courses.get.ts
-  courses-[id].get.ts
+  courses/[id].get.ts
   bookings.post.ts
   bookings-[id]-cancel.post.ts
   materials-[courseId].get.ts    # signierte Streaming-URLs / gated proxy

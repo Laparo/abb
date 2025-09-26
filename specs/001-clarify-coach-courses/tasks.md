@@ -10,7 +10,7 @@ Status: Draft
 
 - [ ] Pages anlegen: `pages/index.vue`, `pages/courses/index.vue`, `pages/courses/[id].vue`
 - [ ] Komponenten: `CourseCard.vue`, `CourseFilterBar.vue`, `BookingSummary.vue`, `CancellationPolicy.vue`
-- [ ] Server API: `server/api/courses.get.ts`, `server/api/courses-[id].get.ts`, `server/api/bookings.post.ts`
+- [ ] Server API: `server/api/courses.get.ts`, `server/api/courses/[id].get.ts`, `server/api/bookings.post.ts`
 - [ ] Prisma Schema: User, Course, Booking, Material; Migration erstellen
 - [ ] Composables: `useCourses.ts`, `useBookings.ts`
 - [ ] E-Mail-Adapter Interface mit Dummy-Implementation; Template bookingConfirmation
