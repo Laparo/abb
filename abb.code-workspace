@@ -8,6 +8,7 @@
 		}
 	],
 	"settings": {
-		"liveServer.settings.multiRootWorkspaceName": "abb"
+		"liveServer.settings.multiRootWorkspaceName": "abb",
+		"codium.codeCompletion.enable": false
 	}
 }

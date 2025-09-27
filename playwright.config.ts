@@ -1,6 +1,10 @@
 import { defineConfig } from '@playwright/test'
 import path from 'node:path'
 
+// Ensure consistent DATABASE_URL for both globalSetup and webServer
+const e2eDbUrl = `file:${path.resolve(process.cwd(), 'dev-e2e.db')}`
+process.env.DATABASE_URL = e2eDbUrl
+
 export default defineConfig({
   testDir: './e2e',
   expect: {
@@ -25,7 +29,7 @@ export default defineConfig({
     reuseExistingServer: true,
     timeout: 120_000,
     env: {
-      DATABASE_URL: `file:${path.resolve(process.cwd(), 'dev-e2e.db')}`,
+      DATABASE_URL: e2eDbUrl,
     },
   },
 })

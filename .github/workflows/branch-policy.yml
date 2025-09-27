@@ -33,7 +33,10 @@ jobs:
           fetch-depth: 0
       - name: Ensure no merge commits in PR commits
         run: |
-          BASE_SHA=$(git merge-base origin/${{ github.base_ref }} HEAD)
+          set -euo pipefail
+          BASE_REF="${{ github.base_ref }}"
+          git fetch origin "$BASE_REF"
+          BASE_SHA="$(git merge-base "origin/$BASE_REF" HEAD)"
           echo "Base SHA: $BASE_SHA"
           # List commits in the PR range and detect merge commits (parents > 1)
           if git rev-list ${BASE_SHA}..HEAD --pretty='%P' | awk 'NF>1{print}' | grep -q .; then
