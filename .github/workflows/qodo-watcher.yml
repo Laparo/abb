@@ -21,6 +21,28 @@ jobs:
           github.event.check_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Ensure label exists
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = 'qodo:passed'
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: label,
+              })
+              core.info(`Label '${label}' exists.`)
+            } catch (e) {
+              core.info(`Creating label '${label}'`)
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: label,
+                color: '0E8A16',
+                description: 'Qodo checks succeeded',
+              })
+            }
       - name: Add label to associated PRs
         uses: actions/github-script@v7
         with:
