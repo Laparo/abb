@@ -87,6 +87,63 @@ npm run test:e2e
 npx playwright show-report
 ```
 
+## Production Deployment
+
+ABB uses a two-branch strategy for safe production deployments:
+
+### Branch Strategy
+
+- `main` → **Staging Environment** (Azure Static Web Apps Preview)
+- `production` → **Production Environment** (Azure Static Web Apps Production)
+
+### Release Workflow
+
+```bash
+# 1. Normal development: feature → main
+git checkout -b feature/my-feature
+# ... develop and test
+# Create PR: feature/my-feature → main
+
+# 2. Production release: main → production
+git checkout main
+git pull origin main
+# Create PR: main → production (requires 2+ reviews)
+```
+
+### Production Requirements
+
+- ✅ **2+ reviewer approvals** for production PRs
+- ✅ **All quality gates pass**: lint, typecheck, unit tests, e2e tests
+- ✅ **Database migration review** for schema changes
+- ✅ **Zero downtime deployment** with health checks
+
+### Environment Configuration
+
+Create these GitHub repository secrets for production deployment:
+
+```yaml
+Secrets (Production Environment):
+  PRODUCTION_DATABASE_URL: 'sqlserver://...'
+  AZURE_STATIC_WEB_APPS_API_TOKEN_PROD: 'deployment-token'
+
+Variables:
+  AZURE_DEPLOYMENT_ENABLED: 'true' # Enable Azure deployments
+```
+
+### Emergency Hotfixes
+
+For critical production issues:
+
+```bash
+# Create hotfix branch
+git checkout production
+git checkout -b hotfix/critical-fix
+
+# Create PR: hotfix/critical-fix → production
+# After merge, backport to main:
+# Create PR: production → main
+```
+
 ### Optional: MCP (lokal)
 
 Siehe `docs/MCP.md` für einen lokalen, ephemeren Prisma MCP-Server und die VS Code Anbindung.
