@@ -1,0 +1,374 @@
+<!-- components/ui/data-display/DataDisplayShowcase.vue -->
+<template>
+  <div class="space-y-8">
+    <!-- Data Tables -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Data Tables</h3>
+      <v-card elevation="3">
+        <v-card-title class="d-flex justify-space-between align-center">
+          Data Table Example
+          <v-btn color="primary" variant="outlined" prepend-icon="mdi-export">
+            Export
+          </v-btn>
+        </v-card-title>
+        
+        <v-data-table
+          :headers="headers"
+          :items="tableItems"
+          :items-per-page="5"
+          class="elevation-0"
+        >
+          <template v-slot:item.status="{ item }">
+            <v-chip
+              :color="getStatusColor(item.status)"
+              size="small"
+              variant="tonal"
+            >
+              {{ item.status }}
+            </v-chip>
+          </template>
+          
+          <template v-slot:item.actions="{ item }">
+            <v-btn icon="mdi-pencil" size="small" variant="text" color="primary"></v-btn>
+            <v-btn icon="mdi-delete" size="small" variant="text" color="error"></v-btn>
+          </template>
+        </v-data-table>
+      </v-card>
+    </div>
+
+    <!-- Timeline -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Timeline</h3>
+      <v-timeline>
+        <v-timeline-item
+          v-for="(item, index) in timelineItems"
+          :key="index"
+          :dot-color="item.color"
+          size="small"
+        >
+          <template v-slot:opposite>
+            <span class="text-caption">{{ item.time }}</span>
+          </template>
+          
+          <v-card elevation="2">
+            <v-card-title class="text-subtitle-1">{{ item.title }}</v-card-title>
+            <v-card-text>{{ item.description }}</v-card-text>
+          </v-card>
+        </v-timeline-item>
+      </v-timeline>
+    </div>
+
+    <!-- Tree View -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Tree View</h3>
+      <v-card elevation="2">
+        <v-treeview
+          :items="treeItems"
+          activatable
+          item-title="name"
+          item-value="id"
+          open-strategy="multiple"
+        >
+          <template v-slot:prepend="{ item }">
+            <v-icon>{{ item.icon }}</v-icon>
+          </template>
+        </v-treeview>
+      </v-card>
+    </div>
+
+    <!-- Virtual Scroller -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Virtual Scroller</h3>
+      <v-card elevation="2" max-height="300">
+        <v-virtual-scroll
+          :items="virtualItems"
+          height="300"
+          item-height="48"
+        >
+          <template v-slot:default="{ item }">
+            <v-list-item>
+              <template v-slot:prepend>
+                <v-avatar :color="item.color">
+                  {{ item.name.charAt(0) }}
+                </v-avatar>
+              </template>
+              <v-list-item-title>{{ item.name }}</v-list-item-title>
+              <v-list-item-subtitle>{{ item.email }}</v-list-item-subtitle>
+            </v-list-item>
+          </template>
+        </v-virtual-scroll>
+      </v-card>
+    </div>
+
+    <!-- Carousels -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Carousel</h3>
+      <v-carousel
+        height="300"
+        cycle
+        hide-delimiter-background
+        show-arrows="hover"
+      >
+        <v-carousel-item
+          v-for="(slide, i) in carouselSlides"
+          :key="i"
+          :src="slide.src"
+          cover
+        >
+          <div class="d-flex fill-height justify-end align-end">
+            <v-card
+              color="rgba(0,0,0,0.4)"
+              flat
+              tile
+              class="white--text pa-4"
+            >
+              <v-card-title>{{ slide.title }}</v-card-title>
+              <v-card-text>{{ slide.description }}</v-card-text>
+            </v-card>
+          </div>
+        </v-carousel-item>
+      </v-carousel>
+    </div>
+
+    <!-- Image Gallery -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Image Gallery</h3>
+      <v-row>
+        <v-col v-for="(image, index) in galleryImages" :key="index" cols="6" md="3">
+          <v-card elevation="2" @click="openImageDialog(image)">
+            <v-img
+              :src="image.src"
+              height="150"
+              cover
+              class="cursor-pointer"
+            >
+              <div class="d-flex justify-end pa-2">
+                <v-chip size="small" color="black">
+                  {{ image.category }}
+                </v-chip>
+              </div>
+            </v-img>
+            <v-card-subtitle class="text-center py-2">{{ image.title }}</v-card-subtitle>
+          </v-card>
+        </v-col>
+      </v-row>
+      
+      <!-- Image Dialog -->
+      <v-dialog v-model="imageDialog" max-width="800">
+        <v-card v-if="selectedImage">
+          <v-img :src="selectedImage.src" max-height="600"></v-img>
+          <v-card-title>{{ selectedImage.title }}</v-card-title>
+          <v-card-text>{{ selectedImage.description }}</v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="primary" @click="imageDialog = false">Close</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
+
+    <!-- Stats Cards -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Statistics Cards</h3>
+      <v-row>
+        <v-col v-for="stat in statsCards" :key="stat.title" cols="12" sm="6" md="3">
+          <v-card elevation="3" :color="stat.color" variant="tonal">
+            <v-card-text>
+              <div class="d-flex justify-space-between align-center">
+                <div>
+                  <div class="text-h5 font-weight-bold">{{ stat.value }}</div>
+                  <div class="text-subtitle-2">{{ stat.title }}</div>
+                </div>
+                <v-icon size="40" :color="stat.color">{{ stat.icon }}</v-icon>
+              </div>
+              <div class="mt-3">
+                <v-chip
+                  :color="stat.trend > 0 ? 'success' : 'error'"
+                  size="small"
+                  variant="outlined"
+                >
+                  <v-icon start size="small">
+                    {{ stat.trend > 0 ? 'mdi-trending-up' : 'mdi-trending-down' }}
+                  </v-icon>
+                  {{ Math.abs(stat.trend) }}%
+                </v-chip>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const imageDialog = ref(false)
+const selectedImage = ref(null)
+
+const headers = [
+  { title: 'Name', value: 'name', sortable: true },
+  { title: 'Email', value: 'email', sortable: true },
+  { title: 'Status', value: 'status', sortable: false },
+  { title: 'Actions', value: 'actions', sortable: false }
+]
+
+const tableItems = [
+  { name: 'John Doe', email: 'john@example.com', status: 'active' },
+  { name: 'Jane Smith', email: 'jane@example.com', status: 'inactive' },
+  { name: 'Bob Johnson', email: 'bob@example.com', status: 'pending' }
+]
+
+const timelineItems = [
+  {
+    title: 'Project Started',
+    description: 'Initial project setup and planning phase.',
+    time: '2 hours ago',
+    color: 'primary'
+  },
+  {
+    title: 'Design Complete',
+    description: 'UI/UX design mockups finalized and approved.',
+    time: '1 hour ago',
+    color: 'success'
+  },
+  {
+    title: 'Development Started',
+    description: 'Frontend development phase initiated.',
+    time: '30 minutes ago',
+    color: 'warning'
+  }
+]
+
+const treeItems = [
+  {
+    id: 1,
+    name: 'Components',
+    icon: 'mdi-folder',
+    children: [
+      {
+        id: 2,
+        name: 'UI',
+        icon: 'mdi-folder',
+        children: [
+          { id: 3, name: 'Buttons', icon: 'mdi-file' },
+          { id: 4, name: 'Forms', icon: 'mdi-file' },
+          { id: 5, name: 'Layout', icon: 'mdi-file' }
+        ]
+      },
+      {
+        id: 6,
+        name: 'Pages',
+        icon: 'mdi-folder',
+        children: [
+          { id: 7, name: 'Home', icon: 'mdi-file' },
+          { id: 8, name: 'About', icon: 'mdi-file' }
+        ]
+      }
+    ]
+  }
+]
+
+const virtualItems = Array.from({ length: 1000 }, (_, i) => ({
+  name: `User ${i + 1}`,
+  email: `user${i + 1}@example.com`,
+  color: ['primary', 'secondary', 'success', 'warning', 'error'][i % 5]
+}))
+
+const carouselSlides = [
+  {
+    src: 'https://picsum.photos/800/300?random=1',
+    title: 'Slide 1',
+    description: 'Beautiful landscape photography'
+  },
+  {
+    src: 'https://picsum.photos/800/300?random=2',
+    title: 'Slide 2',
+    description: 'Urban architecture and design'
+  },
+  {
+    src: 'https://picsum.photos/800/300?random=3',
+    title: 'Slide 3',
+    description: 'Nature and wildlife scenes'
+  }
+]
+
+const galleryImages = [
+  {
+    src: 'https://picsum.photos/300/200?random=10',
+    title: 'Mountain View',
+    description: 'Beautiful mountain landscape with clear skies.',
+    category: 'Nature'
+  },
+  {
+    src: 'https://picsum.photos/300/200?random=11',
+    title: 'City Lights',
+    description: 'Urban cityscape during the golden hour.',
+    category: 'Urban'
+  },
+  {
+    src: 'https://picsum.photos/300/200?random=12',
+    title: 'Ocean Waves',
+    description: 'Peaceful ocean waves on a sandy beach.',
+    category: 'Nature'
+  },
+  {
+    src: 'https://picsum.photos/300/200?random=13',
+    title: 'Forest Path',
+    description: 'A winding path through a dense forest.',
+    category: 'Nature'
+  }
+]
+
+const statsCards = [
+  {
+    title: 'Total Users',
+    value: '2,543',
+    icon: 'mdi-account-group',
+    color: 'primary',
+    trend: 12.5
+  },
+  {
+    title: 'Revenue',
+    value: '$45,231',
+    icon: 'mdi-currency-usd',
+    color: 'success',
+    trend: 8.2
+  },
+  {
+    title: 'Orders',
+    value: '1,829',
+    icon: 'mdi-shopping',
+    color: 'warning',
+    trend: -2.1
+  },
+  {
+    title: 'Conversion',
+    value: '3.24%',
+    icon: 'mdi-chart-line',
+    color: 'info',
+    trend: 5.7
+  }
+]
+
+const getStatusColor = (status: string): string => {
+  switch (status) {
+    case 'active': return 'success'
+    case 'inactive': return 'error'
+    case 'pending': return 'warning'
+    default: return 'grey'
+  }
+}
+
+const openImageDialog = (image: any): void => {
+  selectedImage.value = image
+  imageDialog.value = true
+}
+</script>
+
+<style scoped>
+.cursor-pointer {
+  cursor: pointer;
+}
+</style>

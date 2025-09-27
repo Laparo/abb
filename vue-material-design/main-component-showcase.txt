@@ -1,0 +1,364 @@
+<!-- components/ui/MainComponentShowcase.vue -->
+<template>
+  <v-app>
+    <v-navigation-drawer v-model="drawer" app temporary>
+      <v-list nav>
+        <v-list-item
+          prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
+          title="Component Library"
+          subtitle="Vuetify Collection"
+        ></v-list-item>
+        
+        <v-divider></v-divider>
+        
+        <v-list-item
+          v-for="(category, index) in categories"
+          :key="index"
+          :prepend-icon="category.icon"
+          :title="category.title"
+          :value="category.value"
+          @click="selectedCategory = category.value"
+          :active="selectedCategory === category.value"
+        ></v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-app-bar app color="primary" dark>
+      <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+      <v-app-bar-title>
+        🎨 Complete Vuetify Component Library
+      </v-app-bar-title>
+      <v-spacer></v-spacer>
+      <v-btn icon="mdi-github" href="https://github.com" target="_blank"></v-btn>
+      <v-btn icon="mdi-book-open-variant" href="https://vuetifyjs.com" target="_blank"></v-btn>
+    </v-app-bar>
+
+    <v-main>
+      <v-container fluid class="pa-6">
+        <div class="mb-8">
+          <h1 class="text-h3 font-weight-bold text-grey-darken-3 mb-2">
+            {{ getCurrentCategory()?.title || 'Component Library' }}
+          </h1>
+          <p class="text-body-1 text-grey-darken-1">
+            {{ getCurrentCategory()?.description || 'Complete collection of Vuetify components' }}
+          </p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <v-card class="mb-6" elevation="2">
+          <v-tabs v-model="selectedCategory" bg-color="white" color="primary" show-arrows>
+            <v-tab
+              v-for="category in categories"
+              :key="category.value"
+              :value="category.value"
+            >
+              <v-icon start>{{ category.icon }}</v-icon>
+              {{ category.title }}
+            </v-tab>
+          </v-tabs>
+        </v-card>
+
+        <!-- Component Content -->
+        <v-card class="pa-6" elevation="2" min-height="600">
+          <v-window v-model="selectedCategory">
+            <v-window-item value="buttons">
+              <ButtonShowcase />
+            </v-window-item>
+            
+            <v-window-item value="forms">
+              <FormShowcase />
+            </v-window-item>
+            
+            <v-window-item value="layout">
+              <LayoutShowcase />
+            </v-window-item>
+            
+            <v-window-item value="navigation">
+              <NavigationShowcase />
+            </v-window-item>
+            
+            <v-window-item value="feedback">
+              <FeedbackShowcase />
+            </v-window-item>
+            
+            <v-window-item value="data-display">
+              <DataDisplayShowcase />
+            </v-window-item>
+            
+            <v-window-item value="media">
+              <MediaShowcase />
+            </v-window-item>
+            
+            <v-window-item value="specialized">
+              <SpecializedShowcase />
+            </v-window-item>
+          </v-window>
+        </v-card>
+
+        <!-- Component Statistics -->
+        <v-card class="mt-6" elevation="2">
+          <v-card-title>
+            <v-icon start>mdi-chart-box-outline</v-icon>
+            Component Statistics
+          </v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col v-for="stat in componentStats" :key="stat.category" cols="6" md="3">
+                <div class="text-center">
+                  <div class="text-h4 font-weight-bold text-primary">{{ stat.count }}</div>
+                  <div class="text-body-2 text-grey">{{ stat.category }}</div>
+                </div>
+              </v-col>
+            </v-row>
+            <v-divider class="my-4"></v-divider>
+            <div class="text-center">
+              <div class="text-h3 font-weight-bold text-success">{{ totalComponents }}</div>
+              <div class="text-body-1 text-grey">Total Components Available</div>
+            </div>
+          </v-card-text>
+        </v-card>
+
+        <!-- Quick Links -->
+        <v-card class="mt-6" elevation="2">
+          <v-card-title>
+            <v-icon start>mdi-link-variant</v-icon>
+            Quick Access
+          </v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col v-for="link in quickLinks" :key="link.title" cols="6" md="3">
+                <v-btn
+                  :color="link.color"
+                  variant="outlined"
+                  block
+                  size="large"
+                  @click="selectedCategory = link.category"
+                >
+                  <v-icon start>{{ link.icon }}</v-icon>
+                  {{ link.title }}
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-container>
+    </v-main>
+
+    <!-- Footer -->
+    <v-footer app color="grey-lighten-5" class="d-flex justify-center">
+      <div class="text-center">
+        <p class="text-body-2 text-grey">
+          Built with ❤️ using Vuetify {{ vuetifyVersion }} • 
+          <a href="https://vuetifyjs.com" target="_blank" class="text-decoration-none">
+            Learn More
+          </a>
+        </p>
+      </div>
+    </v-footer>
+
+    <!-- Snackbar for notifications -->
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      timeout="3000"
+      location="bottom right"
+    >
+      {{ snackbar.message }}
+      <template v-slot:actions>
+        <v-btn variant="text" @click="snackbar.show = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
+  </v-app>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, reactive, onMounted } from 'vue'
+import ButtonShowcase from './buttons/ButtonShowcase.vue'
+import FormShowcase from './forms/FormShowcase.vue'
+import LayoutShowcase from './layout/LayoutShowcase.vue'
+import NavigationShowcase from './navigation/NavigationShowcase.vue'
+import FeedbackShowcase from './feedback/FeedbackShowcase.vue'
+import DataDisplayShowcase from './data-display/DataDisplayShowcase.vue'
+import MediaShowcase from './media/MediaShowcase.vue'
+import SpecializedShowcase from './specialized/SpecializedShowcase.vue'
+
+const drawer = ref(false)
+const selectedCategory = ref('buttons')
+const vuetifyVersion = ref('3.4.0')
+
+const snackbar = reactive({
+  show: false,
+  message: '',
+  color: 'primary'
+})
+
+const categories = [
+  {
+    title: 'Buttons',
+    value: 'buttons',
+    icon: 'mdi-gesture-tap-button',
+    description: 'Interactive button components with various styles and states',
+    count: 25
+  },
+  {
+    title: 'Forms',
+    value: 'forms',
+    icon: 'mdi-form-select',
+    description: 'Input controls, validation, and form layouts',
+    count: 18
+  },
+  {
+    title: 'Layout',
+    value: 'layout',
+    icon: 'mdi-view-dashboard',
+    description: 'Cards, grids, dividers, and structural components',
+    count: 15
+  },
+  {
+    title: 'Navigation',
+    value: 'navigation',
+    icon: 'mdi-navigation',
+    description: 'Navigation bars, tabs, breadcrumbs, and menus',
+    count: 12
+  },
+  {
+    title: 'Feedback',
+    value: 'feedback',
+    icon: 'mdi-message-alert',
+    description: 'Dialogs, snackbars, alerts, and progress indicators',
+    count: 16
+  },
+  {
+    title: 'Data Display',
+    value: 'data-display',
+    icon: 'mdi-table',
+    description: 'Tables, lists, timelines, and data visualization',
+    count: 20
+  },
+  {
+    title: 'Media',
+    value: 'media',
+    icon: 'mdi-play-circle',
+    description: 'Video players, audio controls, image galleries',
+    count: 12
+  },
+  {
+    title: 'Specialized',
+    value: 'specialized',
+    icon: 'mdi-star-circle',
+    description: 'Calendar, maps, charts, e-commerce, and advanced components',
+    count: 35
+  }
+]
+
+const componentStats = computed(() => {
+  return categories.map(cat => ({
+    category: cat.title,
+    count: cat.count
+  }))
+})
+
+const totalComponents = computed(() => {
+  return categories.reduce((total, cat) => total + cat.count, 0)
+})
+
+const quickLinks = [
+  {
+    title: 'Get Started',
+    icon: 'mdi-rocket-launch',
+    color: 'primary',
+    category: 'buttons'
+  },
+  {
+    title: 'Forms',
+    icon: 'mdi-form-select',
+    color: 'success',
+    category: 'forms'
+  },
+  {
+    title: 'Charts',
+    icon: 'mdi-chart-line',
+    color: 'warning',
+    category: 'specialized'
+  },
+  {
+    title: 'Media',
+    icon: 'mdi-play',
+    color: 'error',
+    category: 'media'
+  }
+]
+
+const getCurrentCategory = () => {
+  return categories.find(cat => cat.value === selectedCategory.value)
+}
+
+const showNotification = (message: string, color: string = 'primary') => {
+  snackbar.message = message
+  snackbar.color = color
+  snackbar.show = true
+}
+
+onMounted(() => {
+  showNotification(`Welcome! Explore ${totalComponents.value}+ components across ${categories.length} categories.`, 'success')
+})
+</script>
+
+<style scoped>
+.v-application {
+  font-family: 'Roboto', sans-serif;
+}
+
+.component-category {
+  transition: all 0.3s ease;
+}
+
+.component-category:hover {
+  transform: translateY(-2px);
+}
+
+/* Custom scrollbar for better UX */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .text-h3 {
+    font-size: 1.8rem !important;
+  }
+  
+  .v-container {
+    padding: 16px !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .v-navigation-drawer,
+  .v-app-bar,
+  .v-footer {
+    display: none !important;
+  }
+  
+  .v-main {
+    padding: 0 !important;
+  }
+}
+</style>

@@ -103,6 +103,19 @@ export default createVuetify({
 - ❌ Direkter Import der gesamten Material-Design-Icons
 - ❌ Umgehung des Vuetify-Theming-Systems für Farben/Typografie
 
+### 7.1 ABB Material-Komponentenbibliothek (REQUIRED)
+
+Zur Vereinheitlichung von Oberflächen stellt ABB eine interne, wiederverwendbare Material-Komponentenbibliothek bereit.
+
+- Ort: `components/material/` (nur UI-Orchestrierung, keine Business-Logik)
+- Namensschema: Klares, sprechendes PascalCase ohne Präfixe wie `Base` (z. B. `MaterialCard.vue`)
+- Technologie: Vuetify 3 (MD3). Keine direkten DOM-Manipulationen, keine CSS-Frameworks neben Vuetify
+- Typisierung: Alle Props strikt typisiert (TypeScript) mit JSDoc. Slots explizit dokumentieren
+- Tests: Wichtige Komponenten erhalten minimale Unit-Tests (Render + 1-2 Edgecases)
+- Portierungen: Ältere Vuetify-2-Komponenten dürfen nur nach Portierung (V3, Composition API, TS) aufgenommen werden
+
+Pages verwenden ausschließlich diese Komponenten oder native Vuetify-Komponenten. Abweichungen erfordern Review und Architekturfreigabe.
+
 ### 8. Qodo AI Code Review Integration (REQUIRED)
 
 #### Automatisierte Code-Review-Workflows

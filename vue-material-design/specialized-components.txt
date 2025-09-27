@@ -1,0 +1,586 @@
+<!-- components/ui/specialized/SpecializedShowcase.vue -->
+<template>
+  <div class="space-y-8">
+    <!-- Calendar Components -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Calendar & Date Pickers</h3>
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-date-picker
+            v-model="selectedDate"
+            color="primary"
+            elevation="2"
+          ></v-date-picker>
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-card elevation="2">
+            <v-card-title>Events Calendar</v-card-title>
+            <v-card-text>
+              <div class="calendar-grid">
+                <div v-for="day in calendarDays" :key="day.date" class="calendar-day">
+                  <div class="day-number">{{ day.day }}</div>
+                  <div v-for="event in day.events" :key="event.id" class="event-chip">
+                    <v-chip size="x-small" :color="event.color">{{ event.title }}</v-chip>
+                  </div>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
+
+    <!-- Google Maps Integration -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Maps & Location</h3>
+      <v-card elevation="3">
+        <v-card-title class="d-flex justify-space-between align-center">
+          Interactive Map
+          <v-btn-toggle v-model="mapType" mandatory variant="outlined" size="small">
+            <v-btn value="roadmap">Road</v-btn>
+            <v-btn value="satellite">Satellite</v-btn>
+            <v-btn value="terrain">Terrain</v-btn>
+          </v-btn-toggle>
+        </v-card-title>
+        
+        <v-card-text class="pa-0">
+          <div class="map-placeholder d-flex align-center justify-center" style="height: 400px; background: linear-gradient(45deg, #e3f2fd 0%, #bbdefb 100%);">
+            <div class="text-center">
+              <v-icon size="80" color="primary" class="mb-4">mdi-map</v-icon>
+              <h4 class="text-h6 mb-2">Google Maps Integration</h4>
+              <p class="text-body-2 text-grey mb-4">
+                Lat: {{ currentLocation.lat.toFixed(4) }}, Lng: {{ currentLocation.lng.toFixed(4) }}
+              </p>
+              <v-btn color="primary" variant="outlined" @click="getCurrentLocation">
+                <v-icon start>mdi-crosshairs-gps</v-icon>
+                Get My Location
+              </v-btn>
+            </div>
+          </div>
+        </v-card-text>
+        
+        <v-card-actions>
+          <v-chip size="small" color="primary" prepend-icon="mdi-map-marker">
+            {{ markers.length }} markers
+          </v-chip>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" variant="outlined" size="small" @click="addMarkerDialog = true">
+            <v-icon start>mdi-map-marker-plus</v-icon>
+            Add Marker
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </div>
+
+    <!-- Chart Components -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Charts & Analytics</h3>
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-card elevation="2">
+            <v-card-title>Line Chart</v-card-title>
+            <v-card-text>
+              <div class="chart-placeholder d-flex align-center justify-center" style="height: 250px; background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);">
+                <div class="text-center">
+                  <v-icon size="60" color="purple">mdi-chart-line</v-icon>
+                  <p class="text-body-2 mt-2">Line Chart Placeholder</p>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-card elevation="2">
+            <v-card-title>Bar Chart</v-card-title>
+            <v-card-text>
+              <div class="chart-placeholder d-flex align-center justify-center" style="height: 250px; background: linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%);">
+                <div class="text-center">
+                  <v-icon size="60" color="orange">mdi-chart-bar</v-icon>
+                  <p class="text-body-2 mt-2">Bar Chart Placeholder</p>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
+
+    <!-- E-Commerce Components -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">E-Commerce</h3>
+      <v-row>
+        <v-col v-for="product in products" :key="product.id" cols="12" md="4">
+          <v-card elevation="3" class="product-card">
+            <div class="position-relative">
+              <v-img :src="product.image" height="200" cover></v-img>
+              {product.badge && (
+                <v-chip
+                  :color="product.badge === 'SALE' ? 'error' : 'success'"
+                  size="small"
+                  class="position-absolute top-0 left-0 ma-3"
+                >
+                  {{ product.badge }}
+                </v-chip>
+              )}
+              <v-btn
+                :color="wishlist.includes(product.id) ? 'error' : 'grey'"
+                icon="mdi-heart"
+                size="small"
+                class="position-absolute top-0 right-0 ma-3"
+                @click="toggleWishlist(product.id)"
+              ></v-btn>
+            </div>
+            
+            <v-card-text>
+              <h4 class="text-subtitle-1 font-weight-bold mb-2">{{ product.name }}</h4>
+              
+              <div class="d-flex align-center mb-3">
+                <v-rating
+                  :model-value="product.rating"
+                  color="amber"
+                  density="compact"
+                  readonly
+                  size="small"
+                ></v-rating>
+                <span class="text-caption ml-2">({{ product.reviews }})</span>
+              </div>
+              
+              <div class="d-flex align-center justify-space-between mb-3">
+                <div>
+                  <span class="text-h6 font-weight-bold">${{ product.price }}</span>
+                  <span v-if="product.originalPrice" class="text-body-2 text-decoration-line-through ml-2">
+                    ${{ product.originalPrice }}
+                  </span>
+                </div>
+                <v-chip
+                  :color="product.inStock ? 'success' : 'error'"
+                  size="small"
+                  variant="tonal"
+                >
+                  {{ product.inStock ? 'In Stock' : 'Out of Stock' }}
+                </v-chip>
+              </div>
+            </v-card-text>
+            
+            <v-card-actions>
+              <v-btn
+                :disabled="!product.inStock"
+                color="primary"
+                variant="elevated"
+                block
+                @click="addToCart(product.id)"
+              >
+                <v-icon start>mdi-cart-plus</v-icon>
+                Add to Cart
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
+
+    <!-- Chat Interface -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Chat Interface</h3>
+      <v-card elevation="3" max-width="500">
+        <v-card-title class="bg-primary text-white">
+          <v-icon start>mdi-chat</v-icon>
+          Customer Support
+        </v-card-title>
+        
+        <div class="chat-messages pa-4" style="height: 300px; overflow-y: auto;">
+          <div v-for="message in chatMessages" :key="message.id" class="mb-4">
+            <div :class="message.isUser ? 'd-flex justify-end' : 'd-flex'">
+              <div
+                :class="message.isUser ? 'bg-primary text-white' : 'bg-grey-lighten-4'"
+                class="pa-3 rounded-lg"
+                style="max-width: 80%;"
+              >
+                <p class="text-body-2 mb-1">{{ message.text }}</p>
+                <span class="text-caption" :class="message.isUser ? 'text-white' : 'text-grey'">
+                  {{ message.time }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <v-card-actions class="pa-3">
+          <v-text-field
+            v-model="newMessage"
+            label="Type your message..."
+            variant="outlined"
+            density="compact"
+            hide-details
+            class="mr-2"
+            @keyup.enter="sendMessage"
+          ></v-text-field>
+          <v-btn color="primary" icon="mdi-send" @click="sendMessage"></v-btn>
+        </v-card-actions>
+      </v-card>
+    </div>
+
+    <!-- Advanced Forms -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Advanced Form Components</h3>
+      <v-card elevation="2">
+        <v-card-title>Multi-Step Form</v-card-title>
+        <v-card-text>
+          <v-stepper v-model="currentStep" alt-labels>
+            <v-stepper-header>
+              <v-stepper-item
+                :complete="currentStep > 1"
+                :value="1"
+                title="Personal Info"
+              ></v-stepper-item>
+              <v-divider></v-divider>
+              <v-stepper-item
+                :complete="currentStep > 2"
+                :value="2"
+                title="Address"
+              ></v-stepper-item>
+              <v-divider></v-divider>
+              <v-stepper-item
+                :complete="currentStep > 3"
+                :value="3"
+                title="Payment"
+              ></v-stepper-item>
+            </v-stepper-header>
+
+            <v-stepper-window v-model="currentStep">
+              <v-stepper-window-item :value="1">
+                <v-container>
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field label="First Name" variant="outlined"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field label="Last Name" variant="outlined"></v-text-field>
+                    </v-col>
+                  </v-row>
+              <v-stepper-window-item :value="1">
+                <v-container>
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field label="First Name" variant="outlined"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field label="Last Name" variant="outlined"></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-stepper-window-item>
+
+              <v-stepper-window-item :value="2">
+                <v-container>
+                  <v-text-field label="Street Address" variant="outlined" class="mb-4"></v-text-field>
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field label="City" variant="outlined"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field label="ZIP Code" variant="outlined"></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-stepper-window-item>
+
+              <v-stepper-window-item :value="3">
+                <v-container>
+                  <v-text-field label="Card Number" variant="outlined" class="mb-4"></v-text-field>
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field label="Expiry Date" variant="outlined"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field label="CVV" variant="outlined"></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-stepper-window-item>
+            </v-stepper-window>
+
+            <v-stepper-actions
+              :disabled="currentStep === 1"
+              @click:prev="currentStep--"
+              :next-text="currentStep === 3 ? 'Complete' : 'Next'"
+              @click:next="currentStep < 3 ? currentStep++ : completeForm()"
+            ></v-stepper-actions>
+          </v-stepper>
+        </v-card-text>
+      </v-card>
+    </div>
+
+    <!-- Add Marker Dialog -->
+    <v-dialog v-model="addMarkerDialog" max-width="500">
+      <v-card>
+        <v-card-title>Add Map Marker</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="newMarker.title"
+            label="Marker Title"
+            variant="outlined"
+            class="mb-3"
+          ></v-text-field>
+          <v-text-field
+            v-model="newMarker.address"
+            label="Address"
+            variant="outlined"
+            class="mb-3"
+          ></v-text-field>
+          <v-row>
+            <v-col cols="6">
+              <v-text-field
+                v-model.number="newMarker.lat"
+                label="Latitude"
+                type="number"
+                variant="outlined"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="6">
+              <v-text-field
+                v-model.number="newMarker.lng"
+                label="Longitude"
+                type="number"
+                variant="outlined"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="addMarkerDialog = false">Cancel</v-btn>
+          <v-btn color="primary" variant="elevated" @click="saveMarker">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive } from 'vue'
+
+const selectedDate = ref(new Date())
+const mapType = ref('roadmap')
+const addMarkerDialog = ref(false)
+const currentStep = ref(1)
+const newMessage = ref('')
+const wishlist = ref<number[]>([])
+
+const currentLocation = ref({ lat: 37.7749, lng: -122.4194 })
+
+const calendarDays = [
+  {
+    date: '2024-01-15',
+    day: 15,
+    events: [
+      { id: 1, title: 'Meeting', color: 'primary' },
+      { id: 2, title: 'Call', color: 'success' }
+    ]
+  },
+  {
+    date: '2024-01-16',
+    day: 16,
+    events: [
+      { id: 3, title: 'Review', color: 'warning' }
+    ]
+  }
+]
+
+const markers = ref([
+  {
+    id: 1,
+    title: 'Office',
+    address: 'Main Street 123',
+    lat: 37.7749,
+    lng: -122.4194
+  }
+])
+
+const newMarker = reactive({
+  title: '',
+  address: '',
+  lat: 37.7749,
+  lng: -122.4194
+})
+
+const products = [
+  {
+    id: 1,
+    name: 'Premium Headphones',
+    price: 299.99,
+    originalPrice: 399.99,
+    rating: 4.8,
+    reviews: 124,
+    image: 'https://picsum.photos/300/200?random=1',
+    badge: 'SALE',
+    inStock: true
+  },
+  {
+    id: 2,
+    name: 'Smart Watch',
+    price: 499.99,
+    rating: 4.9,
+    reviews: 89,
+    image: 'https://picsum.photos/300/200?random=2',
+    badge: 'NEW',
+    inStock: true
+  },
+  {
+    id: 3,
+    name: 'Wireless Speaker',
+    price: 149.99,
+    rating: 4.6,
+    reviews: 203,
+    image: 'https://picsum.photos/300/200?random=3',
+    inStock: false
+  }
+]
+
+const chatMessages = ref([
+  {
+    id: 1,
+    text: 'Hello! How can I help you today?',
+    time: '10:30 AM',
+    isUser: false
+  },
+  {
+    id: 2,
+    text: 'I need help with my order',
+    time: '10:32 AM',
+    isUser: true
+  },
+  {
+    id: 3,
+    text: 'I\'d be happy to help! What\'s your order number?',
+    time: '10:33 AM',
+    isUser: false
+  }
+])
+
+const getCurrentLocation = (): void => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        currentLocation.value = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        }
+      },
+      (error) => {
+        console.error('Error getting location:', error)
+      }
+    )
+  }
+}
+
+const saveMarker = (): void => {
+  if (newMarker.title.trim()) {
+    markers.value.push({
+      id: Date.now(),
+      title: newMarker.title,
+      address: newMarker.address,
+      lat: newMarker.lat,
+      lng: newMarker.lng
+    })
+    
+    Object.assign(newMarker, {
+      title: '',
+      address: '',
+      lat: 37.7749,
+      lng: -122.4194
+    })
+    
+    addMarkerDialog.value = false
+  }
+}
+
+const toggleWishlist = (productId: number): void => {
+  const index = wishlist.value.indexOf(productId)
+  if (index > -1) {
+    wishlist.value.splice(index, 1)
+  } else {
+    wishlist.value.push(productId)
+  }
+}
+
+const addToCart = (productId: number): void => {
+  console.log('Added to cart:', productId)
+}
+
+const sendMessage = (): void => {
+  if (newMessage.value.trim()) {
+    chatMessages.value.push({
+      id: Date.now(),
+      text: newMessage.value,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isUser: true
+    })
+    
+    newMessage.value = ''
+    
+    // Simulate response
+    setTimeout(() => {
+      chatMessages.value.push({
+        id: Date.now(),
+        text: 'Thank you for your message. How else can I assist you?',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isUser: false
+      })
+    }, 1000)
+  }
+}
+
+const completeForm = (): void => {
+  console.log('Form completed!')
+}
+</script>
+
+<style scoped>
+.product-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-day {
+  min-height: 80px;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.day-number {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.event-chip {
+  margin-bottom: 2px;
+}
+
+.chat-messages {
+  scrollbar-width: thin;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+</style>

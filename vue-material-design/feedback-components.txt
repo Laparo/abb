@@ -1,0 +1,305 @@
+<!-- components/ui/feedback/FeedbackShowcase.vue -->
+<template>
+  <div class="space-y-8">
+    <!-- Dialogs -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Dialogs</h3>
+      <v-btn color="primary" @click="dialog = true">Open Dialog</v-btn>
+      
+      <v-dialog v-model="dialog" max-width="500">
+        <v-card>
+          <v-card-title>Dialog Title</v-card-title>
+          <v-card-text>
+            This is a dialog example with content and actions. You can use dialogs for confirmations, forms, or detailed information.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="grey" variant="text" @click="dialog = false">
+              Cancel
+            </v-btn>
+            <v-btn color="primary" variant="text" @click="dialog = false">
+              Confirm
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
+
+    <!-- Snackbars -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Snackbars</h3>
+      <div class="d-flex flex-wrap ga-2">
+        <v-btn color="success" @click="showSnackbar('success')">Success Message</v-btn>
+        <v-btn color="error" @click="showSnackbar('error')">Error Message</v-btn>
+        <v-btn color="warning" @click="showSnackbar('warning')">Warning Message</v-btn>
+        <v-btn color="info" @click="showSnackbar('info')">Info Message</v-btn>
+      </div>
+      
+      <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
+        {{ snackbar.text }}
+        <template v-slot:actions>
+          <v-btn color="white" variant="text" @click="snackbar.show = false">
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
+    </div>
+
+    <!-- Progress Indicators -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Progress Indicators</h3>
+      <div class="mb-4">
+        <label class="text-body-2 mb-2 d-block">Linear Progress</label>
+        <v-progress-linear
+          :model-value="progressValue"
+          color="primary"
+          height="6"
+        ></v-progress-linear>
+      </div>
+      
+      <div class="mb-4">
+        <label class="text-body-2 mb-2 d-block">Circular Progress</label>
+        <v-progress-circular
+          :model-value="progressValue"
+          color="primary"
+          size="64"
+        ></v-progress-circular>
+      </div>
+      
+      <div class="mb-4">
+        <label class="text-body-2 mb-2 d-block">Indeterminate Progress</label>
+        <v-progress-circular indeterminate color="primary"></v-progress-circular>
+      </div>
+
+      <v-btn @click="animateProgress" :disabled="animating">
+        {{ animating ? 'Animating...' : 'Animate Progress' }}
+      </v-btn>
+    </div>
+
+    <!-- Alerts -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Alerts</h3>
+      <div class="mb-3">
+        <v-alert type="info" variant="tonal">
+          This is an informational alert with additional context.
+        </v-alert>
+      </div>
+      <div class="mb-3">
+        <v-alert type="success" variant="tonal">
+          Operation completed successfully!
+        </v-alert>
+      </div>
+      <div class="mb-3">
+        <v-alert type="warning" variant="tonal">
+          Please check your input before continuing.
+        </v-alert>
+      </div>
+      <div class="mb-3">
+        <v-alert type="error" variant="tonal">
+          Something went wrong. Please try again.
+        </v-alert>
+      </div>
+    </div>
+
+    <!-- Tooltips -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Tooltips</h3>
+      <div class="d-flex flex-wrap ga-4">
+        <v-tooltip text="Tooltip on top">
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" color="primary">Top</v-btn>
+          </template>
+        </v-tooltip>
+        
+        <v-tooltip text="Tooltip on bottom" location="bottom">
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" color="secondary">Bottom</v-btn>
+          </template>
+        </v-tooltip>
+        
+        <v-tooltip text="Tooltip on left" location="start">
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" color="success">Left</v-btn>
+          </template>
+        </v-tooltip>
+        
+        <v-tooltip text="Tooltip on right" location="end">
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" color="warning">Right</v-btn>
+          </template>
+        </v-tooltip>
+      </div>
+    </div>
+
+    <!-- Overlay -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Overlay</h3>
+      <v-btn color="primary" @click="overlay = true">Show Overlay</v-btn>
+      
+      <v-overlay v-model="overlay" class="d-flex align-center justify-center">
+        <v-card class="pa-8 text-center">
+          <v-progress-circular indeterminate color="primary" class="mb-4"></v-progress-circular>
+          <h3 class="mb-4">Loading...</h3>
+          <v-btn color="primary" @click="overlay = false">Close</v-btn>
+        </v-card>
+      </v-overlay>
+    </div>
+
+    <!-- Skeleton Loaders -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Skeleton Loaders</h3>
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-card elevation="2">
+            <v-skeleton-loader
+              v-if="showSkeleton"
+              type="card"
+            ></v-skeleton-loader>
+            <div v-else>
+              <v-img src="https://picsum.photos/400/200" height="200"></v-img>
+              <v-card-title>Card Content</v-card-title>
+              <v-card-text>Actual content loaded</v-card-text>
+            </div>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-skeleton-loader
+            v-if="showSkeleton"
+            type="list-item-avatar-three-line"
+          ></v-skeleton-loader>
+          <v-list v-else>
+            <v-list-item title="John Doe" subtitle="Software Engineer">
+              <template v-slot:prepend>
+                <v-avatar color="primary">JD</v-avatar>
+              </template>
+            </v-list-item>
+          </v-list>
+        </v-col>
+      </v-row>
+      <v-btn @click="toggleSkeleton" class="mt-4">
+        {{ showSkeleton ? 'Show Content' : 'Show Skeleton' }}
+      </v-btn>
+    </div>
+
+    <!-- Rating -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Rating</h3>
+      <div class="d-flex align-center ga-4 mb-4">
+        <v-rating
+          v-model="rating"
+          color="amber"
+          density="default"
+        ></v-rating>
+        <span>{{ rating }} stars</span>
+      </div>
+      
+      <div class="d-flex align-center ga-4">
+        <v-rating
+          v-model="halfRating"
+          color="red"
+          half-increments
+          readonly
+        ></v-rating>
+        <span>{{ halfRating }} stars (read-only with half increments)</span>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Badges</h3>
+      <div class="d-flex flex-wrap ga-4">
+        <v-badge content="6" color="error">
+          <v-btn icon="mdi-email"></v-btn>
+        </v-badge>
+        
+        <v-badge dot color="success">
+          <v-btn icon="mdi-bell"></v-btn>
+        </v-badge>
+        
+        <v-badge content="New" color="primary">
+          <v-btn>Notifications</v-btn>
+        </v-badge>
+        
+        <v-badge content="99+" color="warning">
+          <v-icon size="large">mdi-message</v-icon>
+        </v-badge>
+      </div>
+    </div>
+
+    <!-- Banners -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Banners</h3>
+      <v-banner
+        v-if="showBanner"
+        icon="mdi-information"
+        color="primary"
+        lines="one"
+        text="This is an informational banner with action buttons."
+      >
+        <template v-slot:actions>
+          <v-btn variant="text" @click="showBanner = false">Dismiss</v-btn>
+          <v-btn variant="text">Action</v-btn>
+        </template>
+      </v-banner>
+      
+      <v-btn v-if="!showBanner" @click="showBanner = true">Show Banner</v-btn>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+
+const dialog = ref(false)
+const overlay = ref(false)
+const showSkeleton = ref(true)
+const showBanner = ref(true)
+const rating = ref(4)
+const halfRating = ref(3.5)
+const progressValue = ref(45)
+const animating = ref(false)
+
+const snackbar = reactive({
+  show: false,
+  text: '',
+  color: 'primary'
+})
+
+const showSnackbar = (type: string) => {
+  const messages = {
+    success: 'Operation completed successfully!',
+    error: 'An error occurred. Please try again.',
+    warning: 'Please check your input.',
+    info: 'Here is some helpful information.'
+  }
+  
+  snackbar.text = messages[type as keyof typeof messages]
+  snackbar.color = type
+  snackbar.show = true
+}
+
+const toggleSkeleton = () => {
+  showSkeleton.value = !showSkeleton.value
+}
+
+const animateProgress = () => {
+  animating.value = true
+  progressValue.value = 0
+  
+  const interval = setInterval(() => {
+    progressValue.value += 2
+    if (progressValue.value >= 100) {
+      clearInterval(interval)
+      animating.value = false
+      progressValue.value = 45
+    }
+  }, 50)
+}
+
+onMounted(() => {
+  // Simulate loading delay for skeleton
+  setTimeout(() => {
+    showSkeleton.value = false
+  }, 3000)
+})
+</script>

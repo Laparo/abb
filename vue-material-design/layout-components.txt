@@ -1,0 +1,204 @@
+<!-- components/ui/layout/LayoutShowcase.vue -->
+<template>
+  <div class="space-y-8">
+    <!-- Cards -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Cards</h3>
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-card elevation="3">
+            <v-img
+              src="https://picsum.photos/400/200?random=1"
+              height="200"
+              cover
+            ></v-img>
+            <v-card-title>Card with Image</v-card-title>
+            <v-card-text>
+              This is a basic card with an image, title, content and actions.
+            </v-card-text>
+            <v-card-actions>
+              <v-btn color="primary" variant="text">Action 1</v-btn>
+              <v-btn color="primary" variant="text">Action 2</v-btn>
+              <v-spacer></v-spacer>
+              <v-btn icon="mdi-heart" variant="text"></v-btn>
+              <v-btn icon="mdi-share-variant" variant="text"></v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+        
+        <v-col cols="12" md="6">
+          <v-card elevation="3">
+            <v-card-item>
+              <div class="d-flex align-center">
+                <v-avatar color="primary" class="me-3">
+                  <span class="text-h6">A</span>
+                </v-avatar>
+                <div>
+                  <v-card-title class="pa-0">Article Title</v-card-title>
+                  <v-card-subtitle class="pa-0">Secondary text</v-card-subtitle>
+                </div>
+              </div>
+            </v-card-item>
+            <v-card-text>
+              Card content with avatar and supporting text. This demonstrates the flexible layout options available with Vuetify cards.
+            </v-card-text>
+            <v-card-actions>
+              <v-btn icon="mdi-heart" color="red" variant="text"></v-btn>
+              <v-btn icon="mdi-share-variant" color="blue" variant="text"></v-btn>
+              <v-spacer></v-spacer>
+              <v-btn icon="mdi-dots-vertical" variant="text"></v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
+
+    <!-- Lists -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Lists</h3>
+      <v-card elevation="2">
+        <v-list>
+          <v-list-item
+            v-for="(item, index) in listItems"
+            :key="index"
+            :prepend-avatar="item.avatar"
+            :title="item.title"
+            :subtitle="item.subtitle"
+          >
+            <template v-slot:append>
+              <v-btn icon="mdi-dots-vertical" variant="text"></v-btn>
+            </template>
+          </v-list-item>
+        </v-list>
+      </v-card>
+    </div>
+
+    <!-- Chips -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Chips</h3>
+      <div class="d-flex flex-wrap ga-2">
+        <v-chip
+          v-for="chip in chipOptions"
+          :key="chip"
+          :color="selectedChips.includes(chip) ? 'primary' : 'default'"
+          :variant="selectedChips.includes(chip) ? 'elevated' : 'outlined'"
+          closable
+          @click="toggleChip(chip)"
+          @click:close="removeChip(chip)"
+        >
+          {{ chip }}
+        </v-chip>
+      </div>
+    </div>
+
+    <!-- Expansion Panels -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Expansion Panels</h3>
+      <v-expansion-panels>
+        <v-expansion-panel
+          v-for="(panel, index) in expansionPanels"
+          :key="index"
+          :title="panel.title"
+          :text="panel.text"
+        >
+        </v-expansion-panel>
+      </v-expansion-panels>
+    </div>
+
+    <!-- Dividers -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Dividers</h3>
+      <v-card elevation="2" class="pa-4">
+        <p>Content above divider</p>
+        <v-divider class="my-4"></v-divider>
+        <p>Content below divider</p>
+        <v-divider class="my-4" inset></v-divider>
+        <p>Content with inset divider</p>
+      </v-card>
+    </div>
+
+    <!-- Grids & Containers -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Grid System</h3>
+      <v-container>
+        <v-row>
+          <v-col v-for="n in 3" :key="n" cols="12" md="4">
+            <v-card color="primary" variant="tonal" class="pa-4 text-center">
+              <h4>Column {{ n }}</h4>
+              <p>Grid content example</p>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </div>
+
+    <!-- Spacers -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Spacers</h3>
+      <v-card elevation="2" class="pa-4">
+        <div class="d-flex align-center">
+          <span>Left Content</span>
+          <v-spacer></v-spacer>
+          <span>Right Content</span>
+        </div>
+      </v-card>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const selectedChips = ref(['Vue.js', 'Vuetify'])
+
+const chipOptions = ['Vue.js', 'Vuetify', 'Material Design', 'JavaScript', 'Frontend', 'Nuxt.js', 'TypeScript']
+
+const listItems = [
+  {
+    avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
+    title: 'John Doe',
+    subtitle: 'Designer'
+  },
+  {
+    avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
+    title: 'Sarah Wilson',
+    subtitle: 'Developer'
+  },
+  {
+    avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
+    title: 'Mike Johnson',
+    subtitle: 'Project Manager'
+  }
+]
+
+const expansionPanels = [
+  {
+    title: 'First Panel',
+    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+  },
+  {
+    title: 'Second Panel',
+    text: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
+  },
+  {
+    title: 'Third Panel',
+    text: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.'
+  }
+]
+
+const toggleChip = (chip: string) => {
+  const index = selectedChips.value.indexOf(chip)
+  if (index > -1) {
+    selectedChips.value.splice(index, 1)
+  } else {
+    selectedChips.value.push(chip)
+  }
+}
+
+const removeChip = (chip: string) => {
+  const index = selectedChips.value.indexOf(chip)
+  if (index > -1) {
+    selectedChips.value.splice(index, 1)
+  }
+}
+</script>

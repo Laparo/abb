@@ -1,0 +1,583 @@
+<!-- components/ui/media/MediaShowcase.vue -->
+<template>
+  <div class="space-y-8">
+    <!-- Video Player -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Video Player</h3>
+      <v-card elevation="3" max-width="800">
+        <div class="position-relative">
+          <video
+            ref="videoPlayer"
+            :src="currentVideo.src"
+            :poster="currentVideo.poster"
+            class="w-100"
+            style="max-height: 450px;"
+            @timeupdate="updateProgress"
+            @loadedmetadata="onVideoLoaded"
+            @ended="onVideoEnded"
+          ></video>
+          
+          <!-- Custom Controls -->
+          <div class="position-absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white pa-3">
+            <v-slider
+              v-model="currentTime"
+              :max="duration"
+              color="red"
+              track-color="grey"
+              thumb-color="red"
+              density="compact"
+              hide-details
+              @update:model-value="seekVideo"
+              class="mb-2"
+            ></v-slider>
+            
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center ga-2">
+                <v-btn
+                  :icon="isPlaying ? 'mdi-pause' : 'mdi-play'"
+                  variant="text"
+                  color="white"
+                  @click="togglePlay"
+                ></v-btn>
+                
+                <div class="d-flex align-center ga-2">
+                  <v-btn
+                    :icon="isMuted ? 'mdi-volume-off' : 'mdi-volume-high'"
+                    variant="text"
+                    color="white"
+                    size="small"
+                    @click="toggleMute"
+                  ></v-btn>
+                  
+                  <v-slider
+                    v-model="volume"
+                    :max="100"
+                    color="white"
+                    track-color="grey"
+                    thumb-color="white"
+                    density="compact"
+                    hide-details
+                    style="width: 80px;"
+                    @update:model-value="updateVolume"
+                  ></v-slider>
+                </div>
+              </div>
+              
+              <div class="d-flex align-center ga-2">
+                <span class="text-caption">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
+                <v-btn
+                  icon="mdi-fullscreen"
+                  variant="text"
+                  color="white"
+                  @click="toggleFullscreen"
+                ></v-btn>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <v-card-text>
+          <h4 class="text-h6 font-weight-bold mb-2">{{ currentVideo.title }}</h4>
+          <p class="text-body-2 text-grey">{{ currentVideo.description }}</p>
+        </v-card-text>
+      </v-card>
+    </div>
+
+    <!-- Audio Player -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Audio Player</h3>
+    <!-- Audio Player -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Audio Player</h3>
+      <v-card elevation="3" max-width="600">
+        <v-card-text>
+          <div class="d-flex align-center mb-4">
+            <v-avatar size="64" class="mr-4">
+              <v-img :src="currentTrack.cover"></v-img>
+            </v-avatar>
+            <div>
+              <h4 class="text-subtitle-1 font-weight-bold">{{ currentTrack.title }}</h4>
+              <p class="text-body-2 text-grey">{{ currentTrack.artist }}</p>
+            </div>
+          </div>
+          
+          <v-slider
+            v-model="audioProgress"
+            :max="audioDuration"
+            color="primary"
+            track-color="grey"
+            class="mb-3"
+          ></v-slider>
+          
+          <div class="d-flex align-center justify-center ga-2">
+            <v-btn icon="mdi-skip-previous" variant="text" @click="previousTrack"></v-btn>
+            <v-btn
+              :icon="isAudioPlaying ? 'mdi-pause' : 'mdi-play'"
+              color="primary"
+              size="large"
+              @click="toggleAudioPlay"
+            ></v-btn>
+            <v-btn icon="mdi-skip-next" variant="text" @click="nextTrack"></v-btn>
+          </div>
+          
+          <div class="d-flex align-center justify-space-between mt-3">
+            <span class="text-caption">{{ formatTime(audioProgress) }}</span>
+            <div class="d-flex align-center ga-2">
+              <v-btn icon="mdi-shuffle" variant="text" size="small"></v-btn>
+              <v-btn icon="mdi-repeat" variant="text" size="small"></v-btn>
+            </div>
+            <span class="text-caption">{{ formatTime(audioDuration) }}</span>
+          </div>
+        </v-card-text>
+      </v-card>
+    </div>
+
+    <!-- Image Gallery with Lightbox -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Image Gallery</h3>
+      <v-row>
+        <v-col v-for="(image, index) in galleryImages" :key="index" cols="6" md="3">
+          <v-card elevation="2" @click="openLightbox(index)" class="image-card">
+            <v-img
+              :src="image.thumbnail"
+              height="200"
+              cover
+              class="cursor-pointer"
+            >
+              <div class="image-overlay d-flex align-center justify-center">
+                <v-icon size="48" color="white">mdi-magnify-plus</v-icon>
+              </div>
+            </v-img>
+          </v-card>
+        </v-col>
+      </v-row>
+      
+      <!-- Lightbox Dialog -->
+      <v-dialog v-model="lightboxOpen" max-width="90vw" max-height="90vh">
+        <v-card v-if="currentImageIndex !== null">
+          <div class="position-relative">
+            <v-img
+              :src="galleryImages[currentImageIndex].full"
+              max-height="80vh"
+              contain
+            ></v-img>
+            
+            <!-- Navigation Arrows -->
+            <v-btn
+              icon="mdi-chevron-left"
+              color="white"
+              class="position-absolute top-50 left-0 ml-4"
+              @click="previousImage"
+              :disabled="currentImageIndex === 0"
+            ></v-btn>
+            
+            <v-btn
+              icon="mdi-chevron-right"
+              color="white"
+              class="position-absolute top-50 right-0 mr-4"
+              @click="nextImage"
+              :disabled="currentImageIndex === galleryImages.length - 1"
+            ></v-btn>
+            
+            <!-- Close Button -->
+            <v-btn
+              icon="mdi-close"
+              color="white"
+              class="position-absolute top-0 right-0 ma-4"
+              @click="lightboxOpen = false"
+            ></v-btn>
+          </div>
+          
+          <v-card-text class="text-center">
+            <h4>{{ galleryImages[currentImageIndex].title }}</h4>
+            <p class="text-grey">{{ currentImageIndex + 1 }} of {{ galleryImages.length }}</p>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+    </div>
+
+    <!-- File Upload with Preview -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">File Upload with Preview</h3>
+      <v-card elevation="3">
+        <v-card-text>
+          <div
+            class="upload-area d-flex align-center justify-center flex-column"
+            :class="{ 'drag-over': isDragOver }"
+            @drop.prevent="handleDrop"
+            @dragover.prevent="isDragOver = true"
+            @dragleave="isDragOver = false"
+          >
+            <v-icon size="64" color="grey" class="mb-4">mdi-cloud-upload</v-icon>
+            <h4 class="text-h6 mb-2">Drop files here or click to browse</h4>
+            <p class="text-body-2 text-grey mb-4">Supports: JPG, PNG, PDF, DOC</p>
+            <v-btn color="primary" @click="$refs.fileInput.click()">
+              Choose Files
+            </v-btn>
+          </div>
+          
+          <input
+            ref="fileInput"
+            type="file"
+            multiple
+            accept="image/*,.pdf,.doc,.docx"
+            style="display: none"
+            @change="handleFileSelect"
+          >
+          
+          <!-- File Previews -->
+          <div v-if="uploadedFiles.length > 0" class="mt-6">
+            <h4 class="text-subtitle-1 mb-3">Uploaded Files</h4>
+            <v-row>
+              <v-col v-for="(file, index) in uploadedFiles" :key="index" cols="6" md="3">
+                <v-card elevation="2">
+                  <div v-if="file.type.startsWith('image/')" class="position-relative">
+                    <v-img :src="file.preview" height="120" cover></v-img>
+                    <v-btn
+                      icon="mdi-close"
+                      color="error"
+                      size="small"
+                      class="position-absolute top-0 right-0 ma-1"
+                      @click="removeFile(index)"
+                    ></v-btn>
+                  </div>
+                  <div v-else class="pa-4 text-center">
+                    <v-icon size="48" color="grey" class="mb-2">{{ getFileIcon(file.type) }}</v-icon>
+                    <v-btn
+                      icon="mdi-close"
+                      color="error"
+                      size="small"
+                      class="position-absolute top-0 right-0 ma-1"
+                      @click="removeFile(index)"
+                    ></v-btn>
+                  </div>
+                  <v-card-text class="pa-2">
+                    <p class="text-caption font-weight-bold text-truncate">{{ file.name }}</p>
+                    <p class="text-caption text-grey">{{ formatFileSize(file.size) }}</p>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </div>
+        </v-card-text>
+      </v-card>
+    </div>
+
+    <!-- Media Controls -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Media Controls</h3>
+      <v-card elevation="3">
+        <v-card-text>
+          <div class="d-flex align-center justify-center ga-4 mb-4">
+            <v-btn icon="mdi-camera" color="primary" size="large" @click="capturePhoto">
+              <v-tooltip activator="parent" text="Take Photo"></v-tooltip>
+            </v-btn>
+            <v-btn icon="mdi-video" color="error" size="large" @click="recordVideo">
+              <v-tooltip activator="parent" text="Record Video"></v-tooltip>
+            </v-btn>
+            <v-btn icon="mdi-microphone" color="success" size="large" @click="recordAudio">
+              <v-tooltip activator="parent" text="Record Audio"></v-tooltip>
+            </v-btn>
+            <v-btn icon="mdi-screen-rotation" color="warning" size="large" @click="screenCapture">
+              <v-tooltip activator="parent" text="Screen Capture"></v-tooltip>
+            </v-btn>
+          </div>
+          
+          <!-- Media Preview Area -->
+          <div class="media-preview bg-grey-lighten-4 rounded pa-8 text-center">
+            <div v-if="!mediaPreview">
+              <v-icon size="80" color="grey">mdi-image-multiple</v-icon>
+              <p class="text-body-1 mt-4">Media preview will appear here</p>
+            </div>
+            <div v-else>
+              <img v-if="mediaPreview.type === 'image'" :src="mediaPreview.url" style="max-width: 100%; max-height: 300px;">
+              <video v-else-if="mediaPreview.type === 'video'" :src="mediaPreview.url" controls style="max-width: 100%; max-height: 300px;"></video>
+              <audio v-else-if="mediaPreview.type === 'audio'" :src="mediaPreview.url" controls></audio>
+            </div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const videoPlayer = ref<HTMLVideoElement>()
+const fileInput = ref<HTMLInputElement>()
+const isPlaying = ref(false)
+const isMuted = ref(false)
+const currentTime = ref(0)
+const duration = ref(0)
+const volume = ref(50)
+const lightboxOpen = ref(false)
+const currentImageIndex = ref<number | null>(null)
+const isDragOver = ref(false)
+const uploadedFiles = ref<File[]>([])
+const mediaPreview = ref<any>(null)
+
+// Audio player state
+const isAudioPlaying = ref(false)
+const audioProgress = ref(120)
+const audioDuration = ref(240)
+
+const currentVideo = {
+  src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+  poster: 'https://picsum.photos/800/450?random=1',
+  title: 'Sample Video',
+  description: 'A demonstration video for the media player component.'
+}
+
+const currentTrack = {
+  title: 'Sample Track',
+  artist: 'Demo Artist',
+  cover: 'https://picsum.photos/150/150?random=music'
+}
+
+const galleryImages = [
+  {
+    thumbnail: 'https://picsum.photos/300/200?random=20',
+    full: 'https://picsum.photos/1200/800?random=20',
+    title: 'Mountain Landscape'
+  },
+  {
+    thumbnail: 'https://picsum.photos/300/200?random=21',
+    full: 'https://picsum.photos/1200/800?random=21',
+    title: 'Ocean View'
+  },
+  {
+    thumbnail: 'https://picsum.photos/300/200?random=22',
+    full: 'https://picsum.photos/1200/800?random=22',
+    title: 'Forest Path'
+  },
+  {
+    thumbnail: 'https://picsum.photos/300/200?random=23',
+    full: 'https://picsum.photos/1200/800?random=23',
+    title: 'City Skyline'
+  }
+]
+
+// Video controls
+const togglePlay = (): void => {
+  if (!videoPlayer.value) return
+  
+  if (isPlaying.value) {
+    videoPlayer.value.pause()
+  } else {
+    videoPlayer.value.play()
+  }
+  isPlaying.value = !isPlaying.value
+}
+
+const updateProgress = (): void => {
+  if (videoPlayer.value) {
+    currentTime.value = videoPlayer.value.currentTime
+  }
+}
+
+const onVideoLoaded = (): void => {
+  if (videoPlayer.value) {
+    duration.value = videoPlayer.value.duration
+  }
+}
+
+const onVideoEnded = (): void => {
+  isPlaying.value = false
+  currentTime.value = 0
+}
+
+const seekVideo = (time: number): void => {
+  if (videoPlayer.value) {
+    videoPlayer.value.currentTime = time
+  }
+}
+
+const toggleMute = (): void => {
+  if (videoPlayer.value) {
+    videoPlayer.value.muted = !videoPlayer.value.muted
+    isMuted.value = videoPlayer.value.muted
+  }
+}
+
+const updateVolume = (vol: number): void => {
+  if (videoPlayer.value) {
+    videoPlayer.value.volume = vol / 100
+  }
+}
+
+const toggleFullscreen = (): void => {
+  if (videoPlayer.value) {
+    videoPlayer.value.requestFullscreen()
+  }
+}
+
+const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+// Audio controls
+const toggleAudioPlay = (): void => {
+  isAudioPlaying.value = !isAudioPlaying.value
+}
+
+const previousTrack = (): void => {
+  console.log('Previous track')
+}
+
+const nextTrack = (): void => {
+  console.log('Next track')
+}
+
+// Gallery controls
+const openLightbox = (index: number): void => {
+  currentImageIndex.value = index
+  lightboxOpen.value = true
+}
+
+const previousImage = (): void => {
+  if (currentImageIndex.value !== null && currentImageIndex.value > 0) {
+    currentImageIndex.value--
+  }
+}
+
+const nextImage = (): void => {
+  if (currentImageIndex.value !== null && currentImageIndex.value < galleryImages.length - 1) {
+    currentImageIndex.value++
+  }
+}
+
+// File upload
+const handleDrop = (event: DragEvent): void => {
+  isDragOver.value = false
+  const files = Array.from(event.dataTransfer?.files || [])
+  processFiles(files)
+}
+
+const handleFileSelect = (event: Event): void => {
+  const target = event.target as HTMLInputElement
+  const files = Array.from(target.files || [])
+  processFiles(files)
+}
+
+const processFiles = (files: File[]): void => {
+  files.forEach(file => {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        uploadedFiles.value.push({
+          ...file,
+          preview: e.target?.result as string
+        })
+      }
+      reader.readAsDataURL(file)
+    } else {
+      uploadedFiles.value.push(file)
+    }
+  })
+}
+
+const removeFile = (index: number): void => {
+  uploadedFiles.value.splice(index, 1)
+}
+
+const getFileIcon = (type: string): string => {
+  if (type.includes('pdf')) return 'mdi-file-pdf-box'
+  if (type.includes('word')) return 'mdi-file-word-box'
+  if (type.includes('excel')) return 'mdi-file-excel-box'
+  return 'mdi-file'
+}
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+// Media capture
+const capturePhoto = (): void => {
+  mediaPreview.value = {
+    type: 'image',
+    url: 'https://picsum.photos/400/300?random=photo'
+  }
+}
+
+const recordVideo = (): void => {
+  mediaPreview.value = {
+    type: 'video',
+    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+  }
+}
+
+const recordAudio = (): void => {
+  mediaPreview.value = {
+    type: 'audio',
+    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'
+  }
+}
+
+const screenCapture = (): void => {
+  mediaPreview.value = {
+    type: 'image',
+    url: 'https://picsum.photos/800/600?random=screen'
+  }
+}
+</script>
+
+<style scoped>
+.image-card {
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.image-card:hover {
+  transform: translateY(-4px);
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.image-card:hover .image-overlay {
+  opacity: 1;
+}
+
+.upload-area {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 40px;
+  transition: all 0.2s ease-in-out;
+}
+
+.upload-area.drag-over {
+  border-color: #1976d2;
+  background-color: rgba(25, 118, 210, 0.1);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.media-preview {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.top-50 {
+  top: 50%;
+  transform: translateY(-50%);
+}
+</style>

@@ -1,0 +1,216 @@
+<!-- components/ui/navigation/NavigationShowcase.vue -->
+<template>
+  <div class="space-y-8">
+    <!-- App Bar -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">App Bar</h3>
+      <v-app-bar color="primary" density="default" class="rounded">
+        <v-app-bar-nav-icon></v-app-bar-nav-icon>
+        <v-app-bar-title>App Title</v-app-bar-title>
+        <v-spacer></v-spacer>
+        <v-btn icon="mdi-magnify"></v-btn>
+        <v-btn icon="mdi-dots-vertical"></v-btn>
+      </v-app-bar>
+    </div>
+
+    <!-- Breadcrumbs -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Breadcrumbs</h3>
+      <v-breadcrumbs :items="breadcrumbItems" divider="/">
+        <template v-slot:item="{ item }">
+          <v-breadcrumbs-item
+            :href="item.href"
+            :disabled="item.disabled"
+          >
+            {{ item.title }}
+          </v-breadcrumbs-item>
+        </template>
+      </v-breadcrumbs>
+    </div>
+
+    <!-- Tabs -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Tabs</h3>
+      <v-card elevation="2">
+        <v-tabs v-model="selectedTab" bg-color="white" color="primary">
+          <v-tab value="tab1">Tab 1</v-tab>
+          <v-tab value="tab2">Tab 2</v-tab>
+          <v-tab value="tab3">Tab 3</v-tab>
+        </v-tabs>
+        
+        <v-window v-model="selectedTab">
+          <v-window-item value="tab1">
+            <v-card-text>Content for Tab 1</v-card-text>
+          </v-window-item>
+          <v-window-item value="tab2">
+            <v-card-text>Content for Tab 2</v-card-text>
+          </v-window-item>
+          <v-window-item value="tab3">
+            <v-card-text>Content for Tab 3</v-card-text>
+          </v-window-item>
+        </v-window>
+      </v-card>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Bottom Navigation</h3>
+      <v-bottom-navigation v-model="bottomNav" color="primary" class="rounded">
+        <v-btn value="recents">
+          <v-icon>mdi-history</v-icon>
+          <span>Recents</span>
+        </v-btn>
+        <v-btn value="favorites">
+          <v-icon>mdi-heart</v-icon>
+          <span>Favorites</span>
+        </v-btn>
+        <v-btn value="nearby">
+          <v-icon>mdi-map-marker</v-icon>
+          <span>Nearby</span>
+        </v-btn>
+      </v-bottom-navigation>
+    </div>
+
+    <!-- Navigation Drawer -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Navigation Drawer</h3>
+      <v-card elevation="2" max-width="300">
+        <v-navigation-drawer permanent>
+          <v-list-item
+            prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
+            title="John Doe"
+            subtitle="john@example.com"
+          ></v-list-item>
+          
+          <v-divider></v-divider>
+          
+          <v-list density="compact" nav>
+            <v-list-item
+              v-for="(item, i) in drawerItems"
+              :key="i"
+              :prepend-icon="item.icon"
+              :title="item.title"
+              :value="item.value"
+            ></v-list-item>
+          </v-list>
+        </v-navigation-drawer>
+      </v-card>
+    </div>
+
+    <!-- Speed Dial -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Speed Dial</h3>
+      <div class="position-relative" style="height: 200px;">
+        <v-speed-dial
+          v-model="speedDial"
+          location="bottom end"
+          transition="fade-transition"
+        >
+          <template v-slot:activator="{ props: activatorProps }">
+            <v-fab
+              v-bind="activatorProps"
+              color="primary"
+              icon="mdi-plus"
+            ></v-fab>
+          </template>
+
+          <v-fab
+            color="success"
+            icon="mdi-pencil"
+            size="small"
+          ></v-fab>
+
+          <v-fab
+            color="warning"
+            icon="mdi-delete"
+            size="small"
+          ></v-fab>
+
+          <v-fab
+            color="info"
+            icon="mdi-share-variant"
+            size="small"
+          ></v-fab>
+        </v-speed-dial>
+      </div>
+    </div>
+
+    <!-- Stepper -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Stepper</h3>
+      <v-card elevation="2">
+        <v-stepper v-model="currentStep">
+          <v-stepper-header>
+            <v-stepper-item
+              :complete="currentStep > 1"
+              :value="1"
+              title="Basic Information"
+            ></v-stepper-item>
+
+            <v-divider></v-divider>
+
+            <v-stepper-item
+              :complete="currentStep > 2"
+              :value="2"
+              title="Details"
+            ></v-stepper-item>
+
+            <v-divider></v-divider>
+
+            <v-stepper-item
+              :complete="currentStep > 3"
+              :value="3"
+              title="Review"
+            ></v-stepper-item>
+          </v-stepper-header>
+
+          <v-stepper-window v-model="currentStep">
+            <v-stepper-window-item :value="1">
+              <v-card-text>Step 1 content</v-card-text>
+            </v-stepper-window-item>
+
+            <v-stepper-window-item :value="2">
+              <v-card-text>Step 2 content</v-card-text>
+            </v-stepper-window-item>
+
+            <v-stepper-window-item :value="3">
+              <v-card-text>Step 3 content</v-card-text>
+            </v-stepper-window-item>
+          </v-stepper-window>
+
+          <v-stepper-actions
+            :disabled="currentStep === 1"
+            @click:prev="currentStep--"
+            :next-text="currentStep === 3 ? 'Finish' : 'Next'"
+            @click:next="currentStep++"
+          ></v-stepper-actions>
+        </v-stepper>
+      </v-card>
+    </div>
+
+    <!-- Pagination -->
+    <div>
+      <h3 class="text-h5 font-weight-medium mb-4">Pagination</h3>
+      <div class="d-flex justify-center">
+        <v-pagination
+          v-model="currentPage"
+          :length="totalPages"
+          color="primary"
+        ></v-pagination>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const selectedTab = ref('tab1')
+const bottomNav = ref('recents')
+const speedDial = ref(false)
+const currentStep = ref(1)
+const currentPage = ref(1)
+const totalPages = ref(10)
+
+const breadcrumbItems = [
+  { title: 'Home
