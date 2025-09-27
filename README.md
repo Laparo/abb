@@ -1,6 +1,33 @@
 # ABB - Nuxt.js Application
 
-A modern web application built with Nuxt.js 3, following spec-driven development principles using GitHub Spec Kit (Specify).
+A modern web application built with Nuxt.js 3, following spec-driven development principles using GitHub Spec Kit (How to handle Qodo findings:
+
+1. Öffne den PR und prüfe den Qodo-Kommentar (Summary) und ggf. Inline-Kommentare.
+1. Behebe Findings nach Priorität (security → correctness → performance → maintainability → style).
+1. Markiere erledigte Threads als "resolved".
+1. Falls keine Findings: merge-policy beachten (z. B. mindestens 1 manueller Review) oder manuellen Approve geben.
+
+## Automatisches Anwenden von Suggestions
+
+Dieses Projekt verfügt über ein Script zum automatischen Anwenden von GitHub suggestion blocks:
+
+```bash
+# Alle Suggestions eines PRs anwenden
+npm run apply:qodo -- --pr <number>
+
+# Dry-run (Vorschau ohne Änderungen)
+npm run apply:qodo -- --pr <number> --dry
+
+# Hilfe anzeigen
+npm run apply:qodo -- --help
+```
+
+Das Script:
+
+- Wendet `~~~suggestion` Blöcke aus PR-Reviews automatisch an
+- Führt ESLint --fix und Prettier auf betroffenen Dateien aus
+- Staged alle Änderungen für den nächsten Commit
+- Unterstützt sowohl Inline-Dateireferenzen als auch "Affected:" Hinweisey).
 
 ## Project Overview
 
