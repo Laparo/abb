@@ -123,6 +123,10 @@ jobs:
       - name: Install Playwright Browsers
         if: ${{ steps.detect.outputs.has_node == 'true' && steps.detect.outputs.e2e == 'true' }}
         uses: microsoft/playwright-github-action@v1
+        with:
+          # Avoid installing OS-level deps on GitHub runners where distro detection may fail (Ubuntu 24.04).
+          # Browsers will still be installed; runners generally have required system deps preinstalled.
+          with-deps: false
 
       - name: E2E Tests (Playwright)
         if: ${{ steps.detect.outputs.has_node == 'true' && steps.detect.outputs.e2e == 'true' }}
