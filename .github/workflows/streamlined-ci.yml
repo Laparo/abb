@@ -69,9 +69,9 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci --prefer-offline --no-audit
 
-      # Install Playwright browsers and required OS dependencies on the runner
-      - name: 🎭 Install Playwright Browsers
-        uses: microsoft/playwright-github-action@v1
+      # Install Playwright browsers (nur Chromium, keine OS-Dependencies)
+      - name: 🎭 Install Playwright Browsers (Chromium)
+        run: npx playwright install chromium
 
       - name: 🎭 Run Playwright Tests
         run: npm run test:e2e
