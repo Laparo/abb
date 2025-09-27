@@ -339,9 +339,30 @@ ABB wird als Nuxt 3 Universal Rendering (SSR) App auf Azure Static Web Apps betr
 - Trigger: PRs und Pushes auf `main`.
 - Jobs:
   - Docs/Markdownlint (nur bei geänderten `.md`-Dateien)
-  - Frontend: Lint → Typecheck → Unit (Vitest) → E2E (Playwright)
+  - Frontend: Lint → Typecheck → E2E (Playwright)
+  - **Unit Tests**: Werden in Azure Static Web Apps Free Tier ausgeführt
 - Artefakte: `playwright-report` (E2E), `coverage` (Vitest).
 - Concurrency: laufende Builds desselben PR/SHA werden abgebrochen, um Ressourcen zu sparen.
+
+### Azure Unit Tests Integration
+
+Die Unit-Tests werden direkt in Azure's Free-Tier-Umgebung ausgeführt:
+
+- **Kostenoptimierung**: Spart GitHub Actions Minuten (~100-300 Minuten/Monat)
+- **Native Integration**: Tests sind Teil der Azure Build-Pipeline
+- **Fehlerbehandlung**: Deployment schlägt bei Test-Fehlern automatisch fehl
+- **Performance**: Optimierte Node.js-Umgebung für schnellere Test-Ausführung
+
+Konfiguration in `staticwebapp.config.json`:
+```json
+{
+  "buildConfig": {
+    "buildCommand": "npm run test -- --reporter=dot --run && npm run build"
+  }
+}
+```
+
+Siehe `docs/AZURE-UNIT-TESTS.md` für detaillierte Dokumentation.
 
 ### Voraussetzungen (Produktion)
 

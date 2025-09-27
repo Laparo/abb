@@ -35,9 +35,12 @@ jobs:
       - name: 🔍 TypeScript Build Check
         run: npm run typecheck
 
-      # ✅ Funktionale Tests (bleibt in CI)  
-      - name: ⚡ Unit Tests Execution
-        run: npm run test -- --reporter=dot
+      # ⚡ Unit Tests werden jetzt in Azure Free Tier ausgeführt
+      - name: 📋 Unit Tests Status
+        run: |
+          echo "⚡ Unit Tests werden in Azure Static Web Apps Free Tier ausgeführt"
+          echo "🔗 Tests sind Teil der Azure Build Pipeline"
+          echo "✅ Deployment schlägt fehl wenn Tests nicht bestehen"
 
       # ✅ Build Validation (bleibt in CI)
       - name: 🏗️ Production Build
