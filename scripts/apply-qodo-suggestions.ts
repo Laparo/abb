@@ -1,18 +1,39 @@
 #!/usr/bin/env tsx
 /**
  * Apply GitHub PR review suggestion blocks (```suggestion) to the local workspace.
- * Usage: npm run apply:qodo -- --pr <number> [--repo <owner/repo>] [--token <gh_token>]
+ * Usage: npm run apply:qodo -- --pr <number> [--repo <owner/repo>] [--token <gh_token>] [--dry]
  * Defaults: repo inferred from package.json git remote, token from GITHUB_TOKEN or gh auth.
  */
 
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import {
+  extractSuggestion,
+  applySuggestionToContent,
+  parsePathsFromBody,
+} from './qodo-apply-helpers'
 
 interface Args {
   pr: number
   repo: string
   token?: string
+  dry: boolean
+}
+
+function printUsage() {
+  console.log(
+    `\nApply GitHub suggestion blocks to the local workspace\n\n` +
+      `Options:\n` +
+      `  --pr <number>            Pull Request number (required)\n` +
+      `  --repo <owner/repo>      Repository in owner/name format (auto-inferred)\n` +
+      `  --token <gh_token>       GitHub token (GITHUB_TOKEN/GH_TOKEN fallback)\n` +
+      `  --dry                    Dry run (no file writes, only logs)\n` +
+      `  --help                   Show this help\n` +
+      `\nExamples:\n` +
+      `  npm run apply:qodo -- --pr 12\n` +
+      `  npm run apply:qodo -- --pr 12 --dry\n`
+  )
 }
 
 function parseArgs(): Args {
@@ -20,14 +41,20 @@ function parseArgs(): Args {
   let pr = 0
   let repo: string | undefined
   let token: string | undefined
+  let dry = false
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
-    if (a === '--pr') pr = Number(args[++i])
+    if (a === '--help' || a === '-h') {
+      printUsage()
+      process.exit(0)
+    } else if (a === '--pr') pr = Number(args[++i])
     else if (a === '--repo') repo = args[++i]
     else if (a === '--token') token = args[++i]
+    else if (a === '--dry') dry = true
   }
   if (!pr || Number.isNaN(pr)) {
     console.error('Missing --pr <number>')
+    printUsage()
     process.exit(1)
   }
   if (!repo) {
@@ -45,7 +72,7 @@ function parseArgs(): Args {
     process.exit(1)
   }
   token ||= process.env.GITHUB_TOKEN || process.env.GH_TOKEN
-  return { pr, repo: repo as string, token }
+  return { pr, repo: repo as string, token, dry }
 }
 
 async function fetchJson(url: string, token?: string) {
@@ -71,31 +98,9 @@ async function fetchChangedFiles(repo: string, pr: number, token?: string): Prom
 
 function applySuggestion(filePath: string, startLine: number, endLine: number, suggestion: string) {
   const abs = path.resolve(process.cwd(), filePath)
-  const original = fs.readFileSync(abs, 'utf8').split(/\r?\n/)
-  const pre = original.slice(0, startLine - 1)
-  const post = original.slice(endLine)
-  const suggestionLines = suggestion
-    .replace(/^```suggestion\s*\n?|```$/g, '')
-    .replace(/```$/m, '')
-    .split(/\r?\n/)
-  const merged = [...pre, ...suggestionLines, ...post].join('\n')
+  const original = fs.readFileSync(abs, 'utf8')
+  const merged = applySuggestionToContent(original, startLine, endLine, suggestion)
   fs.writeFileSync(abs, merged, 'utf8')
-}
-
-function extractSuggestion(body: string): string | null {
-  // Look for a fenced code block starting with ```suggestion
-  const match = body.match(/```suggestion[\s\S]*?```/)
-  return match ? match[0] : null
-}
-
-function parsePathsFromBody(body: string): string[] {
-  const paths = new Set<string>()
-  const regex = /([\w./-]+\.(?:ts|vue|js|json|md))(?::(\d+))?/g
-  let m: RegExpExecArray | null
-  while ((m = regex.exec(body)) !== null) {
-    paths.add(m[1])
-  }
-  return Array.from(paths)
 }
 
 function maybeRunFixers(targetFiles: string[]) {
@@ -122,7 +127,19 @@ function maybeRunFixers(targetFiles: string[]) {
 }
 
 async function main() {
-  const { pr, repo, token } = parseArgs()
+  const { pr, repo, token, dry } = parseArgs()
+  // Runtime checks
+  const nodeMajor = Number(process.versions.node.split('.')?.[0] || '0')
+  if (Number.isFinite(nodeMajor) && nodeMajor < 18) {
+    console.warn('This script requires Node 18+ for global fetch. Recommended: Node 20+.')
+  }
+  if (typeof fetch !== 'function') {
+    throw new Error('Global fetch is not available. Please use Node.js v18+ (recommended v20+).')
+  }
+
+  if (dry) {
+    console.log('Dry-run mode enabled: no files will be modified or staged.')
+  }
   console.log(`Fetching review comments for ${repo}#${pr} ...`)
   // PR review comments (diff comments)
   let page = 1
@@ -171,13 +188,21 @@ async function main() {
   }
 
   if (suggestions.length > 0) {
-    console.log(`Applying ${suggestions.length} suggestion(s)...`)
+    console.log(`${dry ? 'Would apply' : 'Applying'} ${suggestions.length} suggestion(s)...`)
     for (const s of suggestions) {
       console.log(`- ${s.path} [${s.start}-${s.end}] (comment ${s.id})`)
-      applySuggestion(s.path, s.start, s.end, s.body)
+      if (dry) {
+        // Show a concise preview of the suggestion content
+        const preview = s.body.split(/\r?\n/).slice(0, 6).join('\n')
+        console.log(`  preview:\n${preview}${s.body.split(/\r?\n/).length > 6 ? '\n  ...' : ''}`)
+      } else {
+        applySuggestion(s.path, s.start, s.end, s.body)
+      }
     }
-    execSync('git add -A', { stdio: 'inherit' })
-    console.log('Applied suggestions and staged changes.')
+    if (!dry) {
+      execSync('git add -A', { stdio: 'inherit' })
+      console.log('Applied suggestions and staged changes.')
+    }
   } else {
     console.log('No suggestion blocks found.')
   }
@@ -190,11 +215,24 @@ async function main() {
   } else {
     changed.forEach((p) => target.add(p))
   }
-  maybeRunFixers(Array.from(target))
+  if (dry) {
+    if (target.size) {
+      console.log(`Would run fixers (ESLint/Prettier) on ${target.size} file(s):`)
+      for (const f of target) console.log(`  - ${f}`)
+    } else {
+      console.log('No target files for fixers.')
+    }
+  } else {
+    maybeRunFixers(Array.from(target))
+  }
 
   // Stage any formatting changes as well
-  execSync('git add -A', { stdio: 'inherit' })
-  console.log('Staged formatting/fix changes (if any). Review with git diff, then commit.')
+  if (!dry) {
+    execSync('git add -A', { stdio: 'inherit' })
+    console.log('Staged formatting/fix changes (if any). Review with git diff, then commit.')
+  } else {
+    console.log('Dry run complete. No changes written.')
+  }
 }
 
 void (async () => {
