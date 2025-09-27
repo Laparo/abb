@@ -27,6 +27,8 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
 
       - name: 📦 Install dependencies
         run: npm ci --prefer-offline --no-audit
@@ -61,9 +63,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
 
       - name: 📦 Install dependencies
         run: npm ci --prefer-offline --no-audit
+
+      # Install Playwright browsers and required OS dependencies on the runner
+      - name: 🎭 Install Playwright Browsers
+        uses: microsoft/playwright-github-action@v1
 
       - name: 🎭 Run Playwright Tests
         run: npm run test:e2e

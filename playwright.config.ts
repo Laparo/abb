@@ -27,7 +27,7 @@ export default defineConfig({
     command: 'npm run build && npm run start:prod',
     port: 3000,
     reuseExistingServer: true,
-    timeout: 120_000,
+    timeout: 180_000,
     env: {
       DATABASE_URL: e2eDbUrl,
     },
