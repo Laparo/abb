@@ -50,34 +50,45 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy to Azure Static Web Apps
-    permissions:
-      id-token: write
-      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
-      - name: Build and Deploy
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Application
+        run: npm run build
+
+      - name: Build completed successfully
+        run: |
+          echo "✅ Build completed successfully!"
+          echo "📦 Output location: .output/public"
+          echo "🔧 API location: .output/server" 
+          ls -la .output/ || echo "Build artifacts not found"
+
+      # Azure deployment is conditional and will be skipped if secrets are not configured
+      - name: Deploy to Azure Static Web Apps
+        id: builddeploy
+        if: vars.AZURE_DEPLOYMENT_ENABLED == 'true'
         uses: Azure/static-web-apps-deploy@v1
         with:
-          # Bevorzugt OIDC (oben). Alternativ kann ein statisches Token genutzt werden:
-          # azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
           app_location: "/"
           api_location: ".output/server"
           output_location: ".output/public"
-          app_build_command: npm ci && npm run build
+          skip_app_build: true  # Build already done above
 
       - name: Prisma migrate deploy (Production)
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && vars.AZURE_DEPLOYMENT_ENABLED == 'true'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PRISMA_SCHEMA: prisma/schema.prod.prisma
@@ -89,13 +100,13 @@ jobs:
           npx prisma migrate deploy
 
   close_pull_request:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && vars.AZURE_DEPLOYMENT_ENABLED == 'true'
     runs-on: ubuntu-latest
     name: Close Azure SWA PR Environment
     steps:
       - name: Close PR Environment
         uses: Azure/static-web-apps-deploy@v1
         with:
-          # Falls kein OIDC verwendet wird, muss hier ein Token hinterlegt sein:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           action: close
+          app_location: "/"  # Required parameter
