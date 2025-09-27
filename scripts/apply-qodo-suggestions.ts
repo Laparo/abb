@@ -11,7 +11,7 @@ import path from 'node:path'
 
 interface Args {
   pr: number
-  repo?: string
+  repo: string
   token?: string
 }
 
@@ -45,7 +45,7 @@ function parseArgs(): Args {
     process.exit(1)
   }
   token ||= process.env.GITHUB_TOKEN || process.env.GH_TOKEN
-  return { pr, repo, token }
+  return { pr, repo: repo as string, token }
 }
 
 async function fetchJson(url: string, token?: string) {
@@ -54,6 +54,19 @@ async function fetchJson(url: string, token?: string) {
   const res = await fetch(url, { headers })
   if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`)
   return res.json()
+}
+
+async function fetchChangedFiles(repo: string, pr: number, token?: string): Promise<string[]> {
+  let page = 1
+  const files: string[] = []
+  while (true) {
+    const url = `https://api.github.com/repos/${repo}/pulls/${pr}/files?per_page=100&page=${page}`
+    const data = await fetchJson(url, token)
+    if (!Array.isArray(data) || data.length === 0) break
+    for (const f of data) if (f.filename) files.push(f.filename as string)
+    page++
+  }
+  return files
 }
 
 function applySuggestion(filePath: string, startLine: number, endLine: number, suggestion: string) {
@@ -75,6 +88,39 @@ function extractSuggestion(body: string): string | null {
   return match ? match[0] : null
 }
 
+function parsePathsFromBody(body: string): string[] {
+  const paths = new Set<string>()
+  const regex = /([\w./-]+\.(?:ts|vue|js|json|md))(?::(\d+))?/g
+  let m: RegExpExecArray | null
+  while ((m = regex.exec(body)) !== null) {
+    paths.add(m[1])
+  }
+  return Array.from(paths)
+}
+
+function maybeRunFixers(targetFiles: string[]) {
+  if (!targetFiles.length) return
+  // Only fix supported extensions and existing files
+  const filtered = targetFiles.filter((p) => /\.(ts|vue|js|json|md)$/.test(p) && fs.existsSync(p))
+  if (!filtered.length) return
+  console.log(`Running ESLint --fix on ${filtered.length} file(s) ...`)
+  try {
+    execSync(`npx eslint --fix --ext .ts,.vue ${filtered.map((f) => `'${f}'`).join(' ')}`, {
+      stdio: 'inherit',
+    })
+  } catch {
+    console.warn('ESLint fix encountered issues (continuing).')
+  }
+  console.log('Running Prettier --write ...')
+  try {
+    execSync(`npx prettier --write ${filtered.map((f) => `'${f}'`).join(' ')}`, {
+      stdio: 'inherit',
+    })
+  } catch {
+    console.warn('Prettier write encountered issues (continuing).')
+  }
+}
+
 async function main() {
   const { pr, repo, token } = parseArgs()
   console.log(`Fetching review comments for ${repo}#${pr} ...`)
@@ -87,6 +133,7 @@ async function main() {
     body: string
     id: number
   }> = []
+  const hintedPaths = new Set<string>()
   while (true) {
     const url = `https://api.github.com/repos/${repo}/pulls/${pr}/comments?per_page=100&page=${page}`
     const data = await fetchJson(url, token)
@@ -94,7 +141,6 @@ async function main() {
     for (const c of data) {
       const s = extractSuggestion(c.body || '')
       if (!s) continue
-      // line info can be in original_position / line / start_line
       const start = (c.start_line ?? c.original_start_line ?? c.line ?? c.original_line) as number
       const end = (c.line ?? c.original_line ?? c.start_line ?? c.original_start_line) as number
       if (!c.path || !start || !end) continue
@@ -105,24 +151,57 @@ async function main() {
         body: s,
         id: c.id as number,
       })
+      hintedPaths.add(c.path as string)
     }
     page++
   }
-  if (suggestions.length === 0) {
-    console.log('No suggestions found.')
-    return
+
+  // Also scan top-level issue comments for additional hints (filenames in text)
+  console.log('Scanning issue comments for additional file hints ...')
+  page = 1
+  while (true) {
+    const url = `https://api.github.com/repos/${repo}/issues/${pr}/comments?per_page=100&page=${page}`
+    const data = await fetchJson(url, token)
+    if (!Array.isArray(data) || data.length === 0) break
+    for (const c of data) {
+      const paths = parsePathsFromBody(c.body || '')
+      paths.forEach((p) => hintedPaths.add(p))
+    }
+    page++
   }
-  console.log(`Applying ${suggestions.length} suggestion(s)...`)
-  for (const s of suggestions) {
-    console.log(`- ${s.path} [${s.start}-${s.end}] (comment ${s.id})`)
-    applySuggestion(s.path, s.start, s.end, s.body)
+
+  if (suggestions.length > 0) {
+    console.log(`Applying ${suggestions.length} suggestion(s)...`)
+    for (const s of suggestions) {
+      console.log(`- ${s.path} [${s.start}-${s.end}] (comment ${s.id})`)
+      applySuggestion(s.path, s.start, s.end, s.body)
+    }
+    execSync('git add -A', { stdio: 'inherit' })
+    console.log('Applied suggestions and staged changes.')
+  } else {
+    console.log('No suggestion blocks found.')
   }
-  // Stage changes so user can commit
+
+  // Limit fixers to changed files intersected with hinted paths; if none hinted, use all changed files
+  const changed = await fetchChangedFiles(repo, pr, token)
+  const target = new Set<string>()
+  if (hintedPaths.size) {
+    for (const p of hintedPaths) if (changed.includes(p)) target.add(p)
+  } else {
+    changed.forEach((p) => target.add(p))
+  }
+  maybeRunFixers(Array.from(target))
+
+  // Stage any formatting changes as well
   execSync('git add -A', { stdio: 'inherit' })
-  console.log('Applied suggestions and staged changes. Review with git diff, then commit.')
+  console.log('Staged formatting/fix changes (if any). Review with git diff, then commit.')
 }
 
-main().catch((err) => {
-  console.error(err)
-  process.exit(1)
-})
+void (async () => {
+  try {
+    await main()
+  } catch (e) {
+    console.error(e)
+    process.exit(1)
+  }
+})()
