@@ -11,6 +11,9 @@
               Healthcheck:
               <code>/api/health</code>
             </p>
+            <div class="mt-4">
+              <v-btn color="primary" variant="flat" :to="'/courses'"> Kurse ansehen </v-btn>
+            </div>
           </v-card-text>
         </v-card>
       </v-col>

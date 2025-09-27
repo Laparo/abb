@@ -1,0 +1,60 @@
+// Nuxt 3 configuration with Vuetify and TypeScript strict
+import { defineNuxtConfig } from 'nuxt/config'
+import path from 'node:path'
+import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+
+export default defineNuxtConfig({
+  typescript: {
+    strict: true,
+    typeCheck: false, // handled in CI via vue-tsc
+  },
+  app: {
+    head: {
+      htmlAttrs: {
+        lang: 'de',
+      },
+    },
+  },
+  modules: ['vuetify-nuxt-module'],
+  vite: {
+    // Vuetify via Vite plugin
+    ssr: {
+      noExternal: ['vuetify'],
+    },
+    server: {
+      fs: {
+        // Zugriff auf externes Dashboard-Repo (Sibling) erlauben
+        allow: [path.resolve(__dirname, '../vuetify-material-dashboard')],
+      },
+    },
+    resolve: {
+      alias: {
+        // Lokale Dashboard-Komponentenquelle (siehe specs/coach-courses/quickstart.md)
+        '@dashboard': path.resolve(__dirname, '../vuetify-material-dashboard/src'),
+      },
+    },
+    vue: {
+      template: {
+        transformAssetUrls,
+      },
+    },
+    // Vite plugins are injected via hook below to ensure proper order in Nuxt
+  },
+  hooks: {
+    // Ensure Vuetify Vite plugin is added for both client and server builds
+  'vite:extendConfig'(config: Record<string, any>) {
+      // Initialize plugins array if missing and push Vuetify plugin
+      ;(config.plugins || (config.plugins = [])).push(
+        vuetify({ autoImport: true })
+      )
+    },
+  },
+  css: ['vuetify/styles'],
+  build: {
+    transpile: ['vuetify'],
+  },
+  nitro: {
+    // Pin Nitro runtime behavior to a known date (see https://nitro.build/deploy#compatibility-date)
+    compatibilityDate: '2025-09-26',
+  },
+})

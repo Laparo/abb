@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../vuetify-material-dashboard"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "abb"
+	}
+}
