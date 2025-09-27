@@ -18,14 +18,46 @@ review:
       - 'composables/**/*.ts'
       - 'components/**/*.vue'
       - 'pages/**/*.vue'
+      - '**/*.md'
+      - 'package.json'
+      - 'prisma/**/*.prisma'
+  
+  # 🤖 Erweiterte Qodo-Checks (von CI ausgelagert)
+  checks:
+    # ✅ Code Style & Formatting (komplett von CI entfernt)
+    style: true              # ESLint style rules (non-error)
+    formatting: true         # Prettier compliance check
+    markdown: true           # Markdownlint documentation quality
+    
+    # ✅ Code Quality & Best Practices (von CI entfernt)
+    vue_patterns: true       # Vue 3 Composition API best practices
+    nuxt_conventions: true   # Nuxt.js file/folder conventions
+    typescript_advanced: true # Advanced TypeScript patterns
+    component_interfaces: true # Props/Emits validation
+    
+    # ✅ Security & Dependencies (von CI entfernt)  
+    security: true           # Security pattern analysis
+    dependencies: true       # Vulnerability scanning
+    secrets_detection: true  # Sensitive data in code
+    
+    # ✅ Documentation Quality (von CI entfernt)
+    documentation: true      # JSDoc completeness
+    readme_quality: true     # README.md content quality
+    api_documentation: true  # API endpoint documentation
+    
+    # ✅ Database & Schema (zusätzlich zu CI)
+    prisma_patterns: true    # Prisma schema best practices
+    database_security: true # Database query security
+    
   comments:
     inline: true
     summary: true
   approve_when_no_issues: false
-  # Optional: Schweregrade für Findings
+  
+  # Qodo übernimmt jetzt diese Schweregrade vollständig:
   severities:
-    - security
-    - correctness
-    - performance
-    - maintainability
-    - style
+    - security     # Höchste Priorität (war in CI)
+    - correctness  # Build-kritische Fehler (teilweise CI)  
+    - performance  # Performance patterns (war nicht in CI)
+    - maintainability # Code maintainability (war nicht in CI)
+    - style        # Code style (komplett von CI entfernt)
