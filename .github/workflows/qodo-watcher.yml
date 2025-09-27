@@ -11,6 +11,8 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
+  actions: read
+  checks: read
 
 jobs:
   when-qodo-green-check:
@@ -108,3 +110,124 @@ jobs:
                 labels: ['qodo:passed']
               })
             }
+
+  when-qodo-failed-check:
+      name: Flag PRs when Qodo check failed and comment analysis
+      if: >-
+        ${{ github.event_name == 'check_run' &&
+            contains(github.event.check_run.name, 'Qodo') &&
+            github.event.check_run.conclusion != 'success' }}
+      runs-on: ubuntu-latest
+      steps:
+        - name: Prepare labels
+          uses: actions/github-script@v7
+          with:
+            script: |
+              const ok = 'qodo:passed'
+              const fail = 'qodo:failed'
+              const ensure = async (name, color, desc) => {
+                try { await github.rest.issues.getLabel({ owner: context.repo.owner, repo: context.repo.repo, name }) }
+                catch { await github.rest.issues.createLabel({ owner: context.repo.owner, repo: context.repo.repo, name, color, description: desc }) }
+              }
+              await ensure(ok, '0E8A16', 'Qodo checks succeeded')
+              await ensure(fail, 'D93F0B', 'Qodo checks failed')
+        - name: Label and analyze PRs
+          uses: actions/github-script@v7
+          with:
+            script: |
+              const prs = (context.payload.check_run.pull_requests || []).map(pr => pr.number)
+              if (!prs.length) {
+                core.info('No PRs associated with this check_run.')
+                return
+              }
+              // Extract basic failure info
+              const cr = context.payload.check_run
+              const title = cr.output?.title || 'Qodo failure'
+              const summary = cr.output?.summary || ''
+              const text = cr.output?.text || ''
+              const detailsUrl = cr.details_url
+              const started = cr.started_at
+              const completed = cr.completed_at
+              const conclusion = cr.conclusion
+              const body = [
+                `Qodo Check: ${cr.name}`,
+                `Conclusion: ${conclusion}`,
+                started && completed ? `Duration: ${Math.max(0, (new Date(completed) - new Date(started))/1000).toFixed(1)}s` : '',
+                detailsUrl ? `Details: ${detailsUrl}` : '',
+                title ? `\n### ${title}` : '',
+                summary ? `\n${summary}` : '',
+                text ? `\n<details><summary>Log excerpt</summary>\n\n${text.substring(0, 8000)}\n\n</details>` : ''
+              ].filter(Boolean).join('\n')
+
+              for (const number of prs) {
+                // Swap labels
+                try { await github.rest.issues.removeLabel({ owner: context.repo.owner, repo: context.repo.repo, issue_number: number, name: 'qodo:passed' }) } catch {}
+                await github.rest.issues.addLabels({ owner: context.repo.owner, repo: context.repo.repo, issue_number: number, labels: ['qodo:failed'] })
+                // Post analysis comment
+                await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: number, body })
+              }
+
+  when-qodo-failed-workflow:
+      name: Flag PRs when Qodo workflow failed and comment analysis
+      if: >-
+        ${{ github.event_name == 'workflow_run' &&
+            contains(github.event.workflow_run.name, 'Qodo') &&
+            github.event.workflow_run.conclusion != 'success' }}
+      runs-on: ubuntu-latest
+      steps:
+        - name: Prepare labels
+          uses: actions/github-script@v7
+          with:
+            script: |
+              const ok = 'qodo:passed'
+              const fail = 'qodo:failed'
+              const ensure = async (name, color, desc) => {
+                try { await github.rest.issues.getLabel({ owner: context.repo.owner, repo: context.repo.repo, name }) }
+                catch { await github.rest.issues.createLabel({ owner: context.repo.owner, repo: context.repo.repo, name, color, description: desc }) }
+              }
+              await ensure(ok, '0E8A16', 'Qodo checks succeeded')
+              await ensure(fail, 'D93F0B', 'Qodo checks failed')
+        - name: Label and analyze PRs
+          uses: actions/github-script@v7
+          with:
+            script: |
+              const wr = context.payload.workflow_run
+              const prs = (wr.pull_requests || []).map(pr => pr.number)
+              if (!prs.length) {
+                core.info('No PRs associated with this workflow_run.')
+                return
+              }
+              // Build analysis body
+              const name = wr.name
+              const head = `${wr.head_repository?.full_name}@${wr.head_branch}`
+              const detailsUrl = wr.html_url
+              const runId = wr.id
+              const conclusion = wr.conclusion
+              const started = wr.run_started_at
+              const completed = wr.updated_at
+              const duration = (started && completed) ? `${Math.max(0, (new Date(completed) - new Date(started))/1000).toFixed(1)}s` : ''
+
+              let jobsText = ''
+              try {
+                const jobs = await github.rest.actions.listJobsForWorkflowRun({ owner: context.repo.owner, repo: context.repo.repo, run_id: runId, per_page: 100 })
+                const failed = jobs.data.jobs.filter(j => j.conclusion !== 'success')
+                jobsText = failed.map(j => `- ${j.name}: ${j.conclusion} (url: ${j.html_url})`).join('\n')
+              } catch (e) {
+                jobsText = '(Keine Job-Details verfügbar)'
+              }
+
+              const body = [
+                `Qodo Workflow: ${name}`,
+                `Branch: ${head}`,
+                `Conclusion: ${conclusion}`,
+                duration ? `Duration: ${duration}` : '',
+                detailsUrl ? `Details: ${detailsUrl}` : '',
+                jobsText ? `\n### Fehlgeschlagene Jobs\n${jobsText}` : ''
+              ].filter(Boolean).join('\n')
+
+              for (const number of prs) {
+                try { await github.rest.issues.removeLabel({ owner: context.repo.owner, repo: context.repo.repo, issue_number: number, name: 'qodo:passed' }) } catch {}
+                await github.rest.issues.addLabels({ owner: context.repo.owner, repo: context.repo.repo, issue_number: number, labels: ['qodo:failed'] })
+                await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: number, body })
+              }
+            
