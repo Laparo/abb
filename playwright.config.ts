@@ -24,12 +24,9 @@ export default defineConfig({
     // Stabilere Tests gegen lokalen Produktionsserver
     // 1) Build (falls nicht vorhanden), 2) Start mit expliziter DB-URL
     // Setze DATABASE_URL direkt, um Abhängigkeit von .env.e2e zu vermeiden
-    command: 'npm run build && npm run start:prod',
+    command: `npm run build && DATABASE_URL="${e2eDbUrl}" npm run start:prod`,
     port: 3000,
     reuseExistingServer: true,
     timeout: 180_000,
-    env: {
-      DATABASE_URL: e2eDbUrl,
-    },
   },
 })

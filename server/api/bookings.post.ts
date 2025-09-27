@@ -16,6 +16,9 @@ export default defineEventHandler(async (event: H3Event) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body = (event as any)?.body as Partial<Body>
   }
+  // Simple debug logs to help diagnose E2E flakiness
+
+  console.log('[api/bookings] incoming body:', body)
   if (!body?.userEmail || !body?.courseId) {
     throw createError({ statusCode: 400, statusMessage: 'userEmail and courseId are required' })
   }
@@ -23,12 +26,19 @@ export default defineEventHandler(async (event: H3Event) => {
     where: { id: Number(body.courseId) },
     include: { bookings: true },
   })
+
+  console.log(
+    '[api/bookings] course lookup:',
+    !!course && { id: course.id, capacity: course.capacity, bookings: course.bookings.length }
+  )
   if (!course) {
     throw createError({ statusCode: 404, statusMessage: 'Course not found' })
   }
   // Kapazitätsprüfung (falls gesetzt)
   if (course.capacity != null) {
     const active = course.bookings.filter((b) => b.status === 'BOOKED').length
+
+    console.log('[api/bookings] capacity check:', { active, capacity: course.capacity })
     if (active >= course.capacity) {
       throw createError({ statusCode: 409, statusMessage: 'Course is fully booked' })
     }
@@ -42,5 +52,7 @@ export default defineEventHandler(async (event: H3Event) => {
     data: { userId: user.id, courseId: course.id },
   })
   // TODO: E-Mail-Bestätigung senden (Adapter)
+
+  console.log('[api/bookings] booking created:', { bookingId: booking.id })
   return { ok: true, bookingId: booking.id }
 })
