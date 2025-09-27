@@ -22,6 +22,21 @@ export default defineNuxtConfig({
     ssr: {
       noExternal: ['vuetify'],
     },
+    // Kleinere, risikoarme Optimierung der Client-Bundle-Größe:
+    // Teile Vendor-Code (Vuetify/Vue) in separate Chunks auf.
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (id.includes('node_modules')) {
+              if (id.includes('/vuetify')) return 'vuetify'
+              if (id.includes('/vue') || id.includes('/vue-router')) return 'vue'
+              return 'vendor'
+            }
+          },
+        },
+      },
+    },
     server: {
       fs: {
         // Zugriff auf externes Dashboard-Repo (Sibling) erlauben
