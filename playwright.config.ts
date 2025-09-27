@@ -1,4 +1,5 @@
 import { defineConfig } from '@playwright/test'
+import path from 'node:path'
 
 export default defineConfig({
   testDir: './e2e',
@@ -17,11 +18,14 @@ export default defineConfig({
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   webServer: {
     // Stabilere Tests gegen lokalen Produktionsserver
-    // 1) Build (falls nicht vorhanden), 2) Start mit .env
-    // Use dedicated .env.e2e created by global-setup to ensure same DB
-    command: 'npm run build && npm run start:e2e',
+    // 1) Build (falls nicht vorhanden), 2) Start mit expliziter DB-URL
+    // Setze DATABASE_URL direkt, um Abhängigkeit von .env.e2e zu vermeiden
+    command: 'npm run build && npm run start:prod',
     port: 3000,
     reuseExistingServer: true,
     timeout: 120_000,
+    env: {
+      DATABASE_URL: `file:${path.resolve(process.cwd(), 'dev-e2e.db')}`,
+    },
   },
 })

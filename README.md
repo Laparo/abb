@@ -55,6 +55,9 @@ npm test
 
 # E2E-Tests (Playwright)
 npm run test:e2e
+
+# Optional: letzten HTML-Report öffnen
+npx playwright show-report
 ```
 
 ### Optional: MCP (lokal)
@@ -112,6 +115,40 @@ Hooks:
 - pre-commit: lint-staged (ESLint + Prettier) und Typecheck
 - commit-msg: Commitlint (Conventional Commits)
 
+### Remote Reviews mit Qodo (optional)
+
+Dieses Repository kann PR-Reviews automatisiert durch einen Remote-Agenten (Qodo) anstoßen.
+
+Einrichtung:
+
+1. (Empfohlen) Installiere die Qodo GitHub App für dieses Repository/Organisation.
+1. Optionalen Webhook konfigurieren:
+
+- Repository Secret `QODO_WEBHOOK_URL` setzen (Settings → Secrets and variables → Actions).
+- Qodo-Endpunkt hinterlegen, der PR-Events entgegennimmt.
+
+1. Review-Trigger:
+
+- Automatisch bei PR-Events (opened, reopened, synchronize, ready_for_review).
+- Manuell durch Label `qodo:review` setzen (unterstützt in `qodo-review` Workflow).
+
+Konfiguration:
+
+- `.github/qodo.yml` steuert Pfade, Event-Trigger und Kommentarverhalten.
+- `.github/workflows/qodo-review.yml` veröffentlicht optional einen Hinweis-Kommentar und kann (wenn Secret gesetzt) den Webhook auslösen.
+
+Sicherheit & Hinweise:
+
+- Der Workflow nutzt `pull_request` (Code aus Branch) und `pull_request_target` (für Label-Event). Sensible Aktionen passieren nur mit klaren Bedingungen und optionalem Secret.
+- Wenn kein Secret `QODO_WEBHOOK_URL` gesetzt ist, wird der Webhook-Schritt übersprungen; die reine Hinweis-Kommentierung bleibt aktiv.
+
+How to handle Qodo findings:
+
+1. Öffne den PR und prüfe den Qodo-Kommentar (Summary) und ggf. Inline-Kommentare.
+1. Behebe Findings nach Priorität (security → correctness → performance → maintainability → style).
+1. Markiere erledigte Threads als “resolved”.
+1. Falls keine Findings: merge-policy beachten (z. B. mindestens 1 manueller Review) oder manuellen Approve geben.
+
 #### Commit Messages
 
 Format: \<type>(\<scope>): \<subject>
@@ -165,6 +202,22 @@ PRs werden automatisch gelabelt, basierend auf Branch-Prefixen und geänderten P
 - Komponenten mit Vuetify testen: `tests/utils/mountWithVuetify.ts` verwenden
 - Coverage-Bericht: `npm run test:coverage` (HTML-Report unter `coverage/`)
 
+### Playwright E2E – Setup & CI-Details
+
+So laufen die E2E-Tests lokal und im CI stabil:
+
+- Der Playwright Webserver startet einen produktionsähnlichen Nitro-Server über `npm run build && npm run start:prod`.
+- Die Datenbank wird explizit per Environment-Variable gesetzt: `DATABASE_URL = file:[…/dev-e2e.db]` (absolute Pfadangabe). Dadurch ist keine `.env.e2e` notwendig und CI-Flakes werden vermieden.
+- `e2e/global-setup.ts` sorgt vor dem Testlauf für Prisma Client, Migrationen und Seeding. Lokal genügt daher `npm run test:e2e` ohne weitere Vorbereitung.
+- Erste Ausführung lokal: ggf. Playwright-Browser installieren: `npx playwright install --with-deps`.
+- Reports: Playwright generiert einen HTML-Report unter `playwright-report/`; im CI wird er als Artefakt hochgeladen.
+
+Troubleshooting:
+
+- Timeout beim Start (120s): Build langsam oder Port 3000 belegt. Lösung: lokale Prozesse beenden, erneut ausführen.
+- Prisma Fehler/fehlende Tabellen: `global-setup` führt Migration/Seed aus; falls abgebrochen, erneut starten.
+- Fehlende Browser im CI: Der Workflow führt `npx playwright install --with-deps` aus (siehe Web CI).
+
 ### Lokaler Produktionslauf
 
 Für einen lokalen Start im produktionsähnlichen Modus (Nitro Node-Server) gibt es zwei Varianten:
@@ -196,6 +249,15 @@ GNU General Public License v3.0 – siehe [LICENSE](LICENSE)
 ## Deployment: Azure Static Web Apps (SWA)
 
 ABB wird als Nuxt 3 Universal Rendering (SSR) App auf Azure Static Web Apps betrieben. Die CI-Pipeline ist bereits vorhanden und führt Lint, Typecheck, Unit- und E2E-Tests aus, bevor deployt wird.
+
+### CI-Übersicht (Web CI)
+
+- Trigger: PRs und Pushes auf `main`.
+- Jobs:
+  - Docs/Markdownlint (nur bei geänderten `.md`-Dateien)
+  - Frontend: Lint → Typecheck → Unit (Vitest) → E2E (Playwright)
+- Artefakte: `playwright-report` (E2E), `coverage` (Vitest).
+- Concurrency: laufende Builds desselben PR/SHA werden abgebrochen, um Ressourcen zu sparen.
 
 ### Voraussetzungen (Produktion)
 

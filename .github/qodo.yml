@@ -1,0 +1,31 @@
+version: 1
+review:
+  enabled: true
+  trigger:
+    # Qodo kann auf dieses Label (oder PR-Events) hören
+    on_labels:
+      - qodo:review
+    on_pr_events:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  paths:
+    include:
+      - '**/*.ts'
+      - '**/*.vue'
+      - 'server/**/*.ts'
+      - 'composables/**/*.ts'
+      - 'components/**/*.vue'
+      - 'pages/**/*.vue'
+  comments:
+    inline: true
+    summary: true
+  approve_when_no_issues: false
+  # Optional: Schweregrade für Findings
+  severities:
+    - security
+    - correctness
+    - performance
+    - maintainability
+    - style
