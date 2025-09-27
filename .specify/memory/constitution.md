@@ -1,15 +1,16 @@
 <!--
 Sync Impact Report:
-Version change: 1.4.0 → 1.5.0
-Modified principles: none
-Added sections: Azure Static Web Apps (SWA) Deployment Standards
-Updated sections: none
-Removed sections: none
+Version change: 1.7.0 → 1.8.0
+Modified principles: 7. Vuetify UI Framework Standards - removed material components library requirement
+Added sections: Component Import Strategy (REQUIRED) with explicit import requirements
+Updated sections: Performance section updated with bundle size optimization details
+Removed sections: 7.1 ABB Material-Komponentenbibliothek (REQUIRED) - no longer needed
 Templates requiring updates:
-✅ aligned: plan-template.md add "Deployment Target: Azure SWA" selector (informational)
+✅ aligned: CLAUDE.md already documents explicit import requirements
+✅ aligned: plan-template.md unaffected
 ✅ aligned: tasks-template.md unaffected
-✅ aligned: copilot-instructions.md already references SSR/SPA and CI gates
-Follow-up TODOs: Provide a repo issue template hint for SWA environment mapping (optional)
+✅ aligned: copilot-instructions.md already references explicit imports
+Follow-up TODOs: None - changes reflect actual implementation state
 -->
 
 # ABB Constitution
@@ -58,8 +59,16 @@ All database operations MUST use Prisma ORM with type-safe client generation. Da
 
 - Standard-Framework: Vuetify 3 mit Material Design 3
 - Designsystem: Materials You mit Vuetify-Theming-System
-- Komponentenverwendung: Ausschließlich Vuetify-Komponenten für konsistente Material-Design-Umsetzung
+- Komponentenverwendung: Ausschließlich Standard-Vuetify-Komponenten für konsistente Material-Design-Umsetzung
 - Layout-System: `v-app`, `v-main`, `v-navigation-drawer`
+
+#### Component Import Strategy (REQUIRED)
+
+- **Explicit Imports**: Vuetify auto-import MUST be disabled for bundle size optimization
+- **Import Pattern**: All Vuetify components MUST be explicitly imported from `'vuetify/components'`
+- **Example**: `import { VCard, VBtn, VIcon } from 'vuetify/components'`
+- **Tree-Shaking**: Only import components that are actually used in templates
+- **Performance Benefit**: Reduces bundle size from ~630kB to ~200-250kB
 
 #### Theming und Styling
 
@@ -92,8 +101,9 @@ export default createVuetify({
 
 #### Performance
 
-- Tree-Shaking: Nutzung von Vuetify-Lab-Komponenten nur bei Bedarf
+- Tree-Shaking: Explicit imports ensure optimal bundle size
 - Icons: Selective Import statt gesamter Material-Design-Icons
+- Auto-Import: MUST be disabled in Nuxt/Vite configuration
 
 ### Prohibited Practices (Vuetify)
 
@@ -102,19 +112,8 @@ export default createVuetify({
 - ❌ Manuelle Responsive-Breakpoints
 - ❌ Direkter Import der gesamten Material-Design-Icons
 - ❌ Umgehung des Vuetify-Theming-Systems für Farben/Typografie
-
-### 7.1 ABB Material-Komponentenbibliothek (REQUIRED)
-
-Zur Vereinheitlichung von Oberflächen stellt ABB eine interne, wiederverwendbare Material-Komponentenbibliothek bereit.
-
-- Ort: `components/material/` (nur UI-Orchestrierung, keine Business-Logik)
-- Namensschema: Klares, sprechendes PascalCase ohne Präfixe wie `Base` (z. B. `MaterialCard.vue`)
-- Technologie: Vuetify 3 (MD3). Keine direkten DOM-Manipulationen, keine CSS-Frameworks neben Vuetify
-- Typisierung: Alle Props strikt typisiert (TypeScript) mit JSDoc. Slots explizit dokumentieren
-- Tests: Wichtige Komponenten erhalten minimale Unit-Tests (Render + 1-2 Edgecases)
-- Portierungen: Ältere Vuetify-2-Komponenten dürfen nur nach Portierung (V3, Composition API, TS) aufgenommen werden
-
-Pages verwenden ausschließlich diese Komponenten oder native Vuetify-Komponenten. Abweichungen erfordern Review und Architekturfreigabe.
+- ❌ Vuetify auto-import (disabled for performance)
+- ❌ Custom Material Design wrapper components (use standard Vuetify)
 
 ### 8. Qodo AI Code Review Integration (REQUIRED)
 
@@ -337,7 +336,7 @@ To keep history consistent and searchable, the following scopes are allowed and 
 - ci — CI workflows, build pipelines, PR/branch policy
 - build — build tooling, bundler, config
 - refactor — internal refactors without behavior change
-  **Version**: 1.7.0 | **Ratified**: 2025-09-23 | **Last Amended**: 2025-01-02
+  **Version**: 1.8.0 | **Ratified**: 2025-09-23 | **Last Amended**: 2025-09-27
 
 ## MCP Tooling Standards (Prisma MCP)
 

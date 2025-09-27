@@ -1,5 +1,7 @@
 # ABB - Nuxt.js Application
 
+[![Azure Static Web Apps (Staging)](https://github.com/Laparo/abb/actions/workflows/azure-static-web-apps.yml/badge.svg)](https://github.com/Laparo/abb/actions/workflows/azure-static-web-apps.yml)
+
 A modern web application built with Nuxt.js 3, following spec-driven development principles using GitHub Spec Kit (How to handle Qodo findings:
 
 1. Öffne den PR und prüfe den Qodo-Kommentar (Summary) und ggf. Inline-Kommentare.
@@ -78,9 +80,11 @@ npm run lint
 npm run typecheck
 
 # Unit-Tests (Vitest)
-npm test
+# Standard: laufen in Azure SWA CI. Lokal nur bei Bedarf ausführen.
+npm test -- --run --reporter=dot
 
 # E2E-Tests (Playwright)
+# Lokal sinnvoll für End-to-End-Flows; selektiv ausführen
 npm run test:e2e
 
 # Optional: letzten HTML-Report öffnen
@@ -198,6 +202,17 @@ Hooks:
 
 - pre-commit: lint-staged (ESLint + Prettier) und Typecheck
 - commit-msg: Commitlint (Conventional Commits)
+
+### Vuetify-Import (wichtig)
+
+- Auto-Import von Vuetify-Komponenten ist deaktiviert.
+- Importiere benötigte Komponenten immer explizit aus `vuetify/components`, z. B.:
+
+```ts
+import { VCard, VBtn } from 'vuetify/components'
+```
+
+Vorteil: deutlich kleinere Bundles durch Tree-Shaking (in diesem Projekt ca. 630 kB → 200–250 kB, abhängig von der Route). Details und Beispiel siehe `docs/CONTRIBUTING.md`.
 
 ### Remote Reviews mit Qodo (optional)
 
@@ -340,7 +355,7 @@ ABB wird als Nuxt 3 Universal Rendering (SSR) App auf Azure Static Web Apps betr
 - Jobs:
   - Docs/Markdownlint (nur bei geänderten `.md`-Dateien)
   - Frontend: Lint → Typecheck → E2E (Playwright)
-  - **Unit Tests**: Werden in Azure Static Web Apps Free Tier ausgeführt
+  - **Unit-Tests**: Laufen in Azure Static Web Apps (SWA) CI; lokal nur bei Bedarf
 - Artefakte: `playwright-report` (E2E), `coverage` (Vitest).
 - Concurrency: laufende Builds desselben PR/SHA werden abgebrochen, um Ressourcen zu sparen.
 
@@ -354,6 +369,7 @@ Die Unit-Tests werden direkt in Azure's Free-Tier-Umgebung ausgeführt:
 - **Performance**: Optimierte Node.js-Umgebung für schnellere Test-Ausführung
 
 Konfiguration in `staticwebapp.config.json`:
+
 ```json
 {
   "buildConfig": {

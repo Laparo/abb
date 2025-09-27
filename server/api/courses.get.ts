@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
 import { defineEventHandler } from 'h3'
-
-const prisma = new PrismaClient()
+import { prisma } from '~/server/utils/prisma'
 
 export default defineEventHandler(async () => {
   const courses = await prisma.course.findMany({

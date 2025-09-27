@@ -1,11 +1,10 @@
-// Vuetify plugin integration for Nuxt 3 (MD3 + MDI icons)
+// Vuetify plugin integration for Nuxt 3 (MD3 + MDI SVG icons)
 import { createVuetify } from 'vuetify'
+import { md3 } from 'vuetify/blueprints'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import { md3 } from 'vuetify/blueprints'
-import { aliases, mdi } from 'vuetify/iconsets/mdi'
+import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
 import { defineNuxtPlugin } from 'nuxt/app'
-import '@mdi/font/css/materialdesignicons.css'
 
 export default defineNuxtPlugin((nuxtApp) => {
   // Register all Vuetify components/directives for SSR and runtime resolution
@@ -14,7 +13,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     components,
     directives,
     icons: {
-      defaultSet: 'mdi',
+      defaultSet: 'mdi', // uses SVG icon set (mdi-svg)
       aliases,
       sets: { mdi },
     },

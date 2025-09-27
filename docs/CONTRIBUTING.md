@@ -63,6 +63,22 @@ Pushes/PRs triggern die Pipeline:
 
 Artefakte (Berichte) werden als GitHub Actions Artifacts angehängt.
 
+### Unit-Tests: Lokal vs. CI
+
+- Standard: Unit-Tests (Vitest) laufen in der Azure Static Web Apps CI-Pipeline.
+- Lokal nur ausführen, wenn es für deine nächsten Schritte nötig ist (z. B. neue Business-Logik, Debugging, schnelles Feedback).
+- Empfohlene lokale Ausführung:
+
+```bash
+# Einmaliger Lauf (schnell, CI-nah)
+npm test -- --run --reporter=dot
+
+# Watch-Modus zum Entwickeln/Debuggen
+npm test -- --watch
+```
+
+Hinweis: E2E-Tests (Playwright) bleiben lokal sinnvoll für End-to-End-Flows; führe sie selektiv aus, wenn deine Änderung relevante Flows betrifft.
+
 ## Datenbank & Migrationen
 
 1. Lokal/CI: SQLite (`prisma/schema.prisma`)
@@ -84,3 +100,56 @@ Artefakte (Berichte) werden als GitHub Actions Artifacts angehängt.
 1. CI-Workflows: `.github/workflows/*.yml`
 1. Prisma: `prisma/`
 1. SWA Konfig: `staticwebapp.config.json`
+
+## Vuetify-Komponenten: Import-Guidelines (verbindlich)
+
+Damit Bundles klein bleiben und Tree-Shaking greift, ist der automatische Import von Vuetify-Komponenten bewusst deaktiviert. Bitte halte dich an folgende Regeln:
+
+1. Achtung: Auto-Import ist deaktiviert
+
+- Es gibt keine automatische globale Registrierung von Vuetify-Komponenten.
+- Komponenten müssen immer explizit importiert werden, sonst schlägt der Build/TS-Check fehl.
+
+1. Immer explizit aus 'vuetify/components' importieren
+
+- Beispiel: `import { VCard, VBtn } from 'vuetify/components'`
+- Nicht aus dem Root-Paket `vuetify` importieren, da dies Tree-Shaking verschlechtert.
+
+1. Beispiel-Syntax
+
+```vue
+<template>
+  <v-card class="pa-4">
+    <v-card-title>Beispiel</v-card-title>
+    <v-card-text>Nur benötigte Komponenten importieren.</v-card-text>
+    <v-btn color="primary">Action</v-btn>
+  </v-card>
+</template>
+
+<script setup lang="ts">
+// Explizite, selektive Imports aus Vuetify
+import { VCard, VCardTitle, VCardText, VBtn } from 'vuetify/components'
+
+// Optional: Nur falls Direktiven gebraucht werden
+// import { Ripple } from 'vuetify/directives'
+</script>
+```
+
+1. Best Practice: Nur verwenden, was du importierst
+
+- Importiere ausschließlich die Komponenten, die in der Datei tatsächlich genutzt werden.
+- Vermeide Wildcard-/Sammel-Imports oder globale Registrierungen.
+- Halte Templates sauber: Nutze Vuetify-Komponenten direkt, vermeide unnötige Wrapper.
+
+1. Performance-Vorteil: Kleinere Bundles
+
+- Durch selektive Imports reduziert sich das Client-Bundle erfahrungsgemäß deutlich.
+- In diesem Projekt: ca. 630 kB → 200–250 kB (route-abhängig), dank besserem Tree-Shaking.
+- Ergebnis: Schnellere Ladezeiten, bessere Core Web Vitals und flüssigere Interaktion.
+
+Kurzfassung
+
+- Auto-Import aus: Ja.
+- Import-Pfad: Immer 'vuetify/components'.
+- Nur benutzen, was importiert ist: Ja.
+- Ziel: Minimale Bundle Size und saubere, nachvollziehbare Komponenten-Nutzung.

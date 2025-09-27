@@ -23,6 +23,16 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import {
+  VApp,
+  VMain,
+  VContainer,
+  VRow,
+  VCol,
+  VCard,
+  VCardTitle,
+  VCardText,
+} from 'vuetify/components'
 
 const props = defineProps<{ error: { statusCode?: number; message?: string } }>()
 

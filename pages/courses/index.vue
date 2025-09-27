@@ -30,6 +30,17 @@
 </template>
 
 <script setup lang="ts">
+import {
+  VContainer,
+  VRow,
+  VCol,
+  VAlert,
+  VCard,
+  VCardTitle,
+  VCardText,
+  VCardActions,
+  VBtn,
+} from 'vuetify/components'
 import { useCourses } from '@/composables/useCourses'
 
 useHead({ title: 'Kurse' })

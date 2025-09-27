@@ -27,6 +27,7 @@ und die neuen Git-Branching-Standards durchzusetzen.
 ## Tests & Nachweise
 
 - Unit-Tests (Vitest): <!-- hinzugefügt/aktualisiert? kurz beschreiben -->
+- Hinweis: Unit-Tests laufen standardmäßig in Azure SWA CI. Lokal nur ausführen, wenn für diesen PR nötig (z. B. neue Logik/Refactor, Debugging).
 - Component-Tests (Vue Test Utils): <!-- ja/nein, was -->
 - E2E (Playwright): <!-- ja/nein, welche Flows -->
 - Manuelle Nachweise (Screenshots/Video/GIF):

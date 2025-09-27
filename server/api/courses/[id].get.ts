@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { defineEventHandler, getRouterParam, createError } from 'h3'
 import type { H3Event } from 'h3'
-
-const prisma = new PrismaClient()
+import { prisma } from '~/server/utils/prisma'
 
 export default defineEventHandler(async (event: H3Event) => {
   const id = Number(getRouterParam(event, 'id'))

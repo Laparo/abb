@@ -41,6 +41,18 @@
 </template>
 
 <script setup lang="ts">
+import {
+  VContainer,
+  VRow,
+  VCol,
+  VBtn,
+  VCard,
+  VCardTitle,
+  VCardText,
+  VCardActions,
+  VTextField,
+  VAlert,
+} from 'vuetify/components'
 import { useRoute } from 'vue-router'
 import { useCourses } from '@/composables/useCourses'
 import { useBookings } from '@/composables/useBookings'

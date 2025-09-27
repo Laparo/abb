@@ -12,6 +12,7 @@
     "types": ["vitest/globals", "node", "@playwright/test"],
     "baseUrl": ".",
     "paths": {
+      "~/*": ["./*"],
       "@/*": ["./*"],
       "@dashboard/*": ["../vuetify-material-dashboard/src/*"]
     }

@@ -22,6 +22,8 @@
 </template>
 
 <script setup lang="ts">
+import { VContainer, VRow, VCol, VCard, VCardTitle, VCardText, VBtn } from 'vuetify/components'
+
 // Example head for SEO
 useHead({ title: 'ABB – Start' })
 </script>

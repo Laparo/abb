@@ -12,6 +12,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { VCard, VCardTitle, VCardText, VCardActions, VBtn } from 'vuetify/components'
 
 interface Props {
   /** Überschrift im Card-Header */

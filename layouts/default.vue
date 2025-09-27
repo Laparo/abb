@@ -7,6 +7,8 @@
 </template>
 
 <script setup lang="ts">
+import { VApp, VMain } from 'vuetify/components'
+
 // Standardlayout für Vuetify-Wrapper
 defineOptions({
   name: 'DefaultLayout',
