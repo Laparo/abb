@@ -74,6 +74,8 @@ jobs:
         run: npx playwright install chromium
 
       - name: 🎭 Run Playwright Tests
+        env:
+          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: '1'
         run: npm run test:e2e
 
       - name: 📊 Upload Playwright Report
