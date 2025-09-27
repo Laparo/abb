@@ -1,0 +1,46 @@
+name: Qodo - PR Review Trigger
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  notify:
+    name: Notify Qodo
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add info comment for reviewers
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            🤖 Qodo-Check geplant. Dieser PR wird von Qodo überprüft, sobald das Label `qodo:review` gesetzt ist oder automatisch bei PR-Events.
+            Konfiguration: `.github/qodo.yml`.
+
+      - name: Trigger Qodo via webhook (optional)
+        if: ${{ github.event_name == 'pull_request' || (github.event_name == 'pull_request_target' && github.event.action == 'labeled' && github.event.label.name == 'qodo:review') }}
+        env:
+          QODO_WEBHOOK_URL: ${{ secrets.QODO_WEBHOOK_URL }}
+        run: |
+          if [ -z "$QODO_WEBHOOK_URL" ]; then
+            echo "QODO_WEBHOOK_URL not set. Skipping webhook notification."
+            exit 0
+          fi
+          pr_number="${{ github.event.pull_request.number }}"
+          if [ -z "$pr_number" ]; then pr_number="${{ github.event.number }}"; fi
+          payload=$(jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg pr "$pr_number" \
+            --arg sha "${{ github.sha }}" \
+            --arg ref "${{ github.ref }}" \
+            --arg label "${{ github.event.label.name || '' }}" \
+            '{repository:$repo, number:$pr, sha:$sha, ref:$ref, label:$label}')
+          curl -sSf -X POST "$QODO_WEBHOOK_URL" \
+            -H 'Content-Type: application/json' \
+            -d "$payload"

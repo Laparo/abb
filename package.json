@@ -29,7 +29,8 @@
     "prepare": "husky install",
     "postinstall": "prisma generate || true",
     "lint:md": "markdownlint README.md docs/**/*.md",
-    "mcp:prisma": "prisma mcp"
+    "mcp:prisma": "prisma mcp",
+    "apply:qodo": "tsx scripts/apply-qodo-suggestions.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",

@@ -52,11 +52,111 @@ All database operations MUST use Prisma ORM with type-safe client generation. Da
 
 **Rationale**: Prisma provides type safety, excellent developer experience, and seamless integration with TypeScript and Nuxt.js server API routes.
 
-### VII. Vuetify UI Framework Standards (NON-NEGOTIABLE)
+### 7. Vuetify UI Framework Standards (NON-NEGOTIABLE)
 
-All UI components MUST use Vuetify 3 component library. Custom styling MUST follow Material Design 3 principles through Vuetify's theming system. Component composition MUST leverage Vuetify's layout system (`v-app`, `v-main`, `v-navigation-drawer`). Theme customization MUST be centralized in Vuetify configuration. No CSS frameworks other than Vuetify allowed.
+#### UI-Komponentenbibliothek
 
-**Rationale**: Vuetify provides comprehensive Material Design implementation, excellent TypeScript support, and seamless Vue 3 integration for consistent, accessible UI.
+- Standard-Framework: Vuetify 3 mit Material Design 3
+- Designsystem: Materials You mit Vuetify-Theming-System
+- Komponentenverwendung: Ausschließlich Vuetify-Komponenten für konsistente Material-Design-Umsetzung
+- Layout-System: `v-app`, `v-main`, `v-navigation-drawer`
+
+#### Theming und Styling
+
+```typescript
+// plugins/vuetify.ts
+import { createVuetify } from 'vuetify'
+import { md3 } from 'vuetify/blueprints'
+
+export default createVuetify({
+  blueprint: md3, // Material Design 3
+  theme: {
+    defaultTheme: 'light',
+    themes: {
+      light: {
+        colors: {
+          primary: '#6750A4',
+          // Materials You palette
+        },
+      },
+    },
+  },
+})
+```
+
+#### Responsivität
+
+- Display-Breakpoints: Nutzung von Vuetify `useDisplay()` Composable
+- Vermeidung: Manuelle Breakpoints; stattdessen Vuetify-Display-Utilities
+- Grid-System: Vuetify `v-container`, `v-row`, `v-col`
+
+#### Performance
+
+- Tree-Shaking: Nutzung von Vuetify-Lab-Komponenten nur bei Bedarf
+- Icons: Selective Import statt gesamter Material-Design-Icons
+
+### Prohibited Practices (Vuetify)
+
+- ❌ Verwendung nicht-Vuetify UI-Frameworks (Bootstrap, Tailwind)
+- ❌ Custom CSS anstelle von Vuetify-Komponenten
+- ❌ Manuelle Responsive-Breakpoints
+- ❌ Direkter Import der gesamten Material-Design-Icons
+- ❌ Umgehung des Vuetify-Theming-Systems für Farben/Typografie
+
+### 8. Qodo AI Code Review Integration (REQUIRED)
+
+#### Automatisierte Code-Review-Workflows
+
+- AI-Agent: Qodo für automatisierte Code-Analyse und Verbesserungsvorschläge
+- Trigger: Bei Pull Request-Erstellung oder Code-Push in Feature-Branches
+- Review-Scope: TypeScript-Code, Vue-Komponenten, Composables, Server-API, Tests
+- Integration: Native GitHub Integration mit automatischer Suggestion-Application
+
+#### Suggestion-Application-Prozess
+
+```bash
+# Automatische Anwendung von Qodo-Vorschlägen
+npm run qodo:apply
+
+# Mit spezifischen Flags für kontrollierten Workflow
+npm run qodo:apply -- --dry-run --filter=typescript
+npm run qodo:apply -- --auto-commit --message="feat: apply qodo suggestions"
+```
+
+#### Qualitätsgates und Validation
+
+- Pre-Application: Automatische Syntax- und TypeScript-Validierung aller Suggestions
+- Post-Application: Ausführung aller Quality Gates (ESLint, TypeScript, Tests)
+- Rollback-Mechanismus: Git-Reset bei fehlgeschlagener Validierung
+- Human-Review: MUSS nach Qodo-Application durchgeführt werden (NON-NEGOTIABLE)
+
+#### CI/CD-Integration
+
+```yaml
+# .github/workflows/qodo-review.yml
+- name: Qodo Code Review
+  run: npm run qodo:apply -- --validate-only
+- name: Quality Gates Post-Qodo
+  run: |
+    npm run lint
+    npm run typecheck
+    npm run test:unit
+```
+
+#### Konfiguration und Sicherheit
+
+- Scope-Beschränkung: Qodo-Zugriff nur auf öffentliche Repository-Inhalte
+- Secret-Management: Keine Secrets in Qodo-Prompts oder -Suggestions
+- Code-Ownership: Finale Entscheidung über Code-Änderungen liegt beim Entwicklungsteam
+- Audit-Trail: Alle Qodo-Suggestions werden in PR-Kommentaren dokumentiert
+
+### Prohibited Practices (Qodo)
+
+- ❌ Direktes Übernehmen von Qodo-Suggestions ohne Human-Review
+- ❌ Anwendung von Suggestions, die Quality Gates brechen
+- ❌ Einbindung von Secrets oder sensiblen Daten in Qodo-Prompts
+- ❌ Umgehung der TypeScript-Validierung nach Suggestion-Application
+- ❌ Automatisches Mergen von PRs mit Qodo-Suggestions ohne Team-Review
 
 ## Nuxt.js Standards
 
@@ -99,16 +199,16 @@ All database interactions MUST follow Prisma best practices:
 
 <!--
 Sync Impact Report:
-Version change: 1.5.0 → 1.6.0
-Modified principles: Database Standards (environment matrix)
-Added sections: Production Database: Azure SQL (REQUIRED)
-Updated sections: Azure Static Web Apps (SWA) Deployment Standards (cross-reference to DB networking)
+Version change: 1.5.0 → 1.7.0
+Modified principles: Added new core principle "Qodo AI Code Review Integration"
+Added sections: 8. Qodo AI Code Review Integration (REQUIRED) with automated workflow standards
+Updated sections: Core principles count increased from 7 to 8
 Removed sections: none
 Templates requiring updates:
-✅ aligned: plan-template.md add "Database Target: Azure SQL" selector (informational)
-✅ aligned: tasks-template.md add checklist item "Prisma migrate deploy for Azure SQL" (informational)
-✅ aligned: copilot-instructions.md already references Prisma ORM integration
-Follow-up TODOs: Provide a README snippet for Azure SQL `DATABASE_URL` format and Key Vault integration (optional)
+🔄 TODO: plan-template.md add "Qodo Review: [ ] Automated suggestions applied and validated" (checklist)
+🔄 TODO: tasks-template.md add task type "qodo-review" with suggestion application workflow
+🔄 TODO: copilot-instructions.md add Qodo integration anti-patterns and prohibited practices
+Follow-up TODOs: Create Qodo workflow documentation with step-by-step suggestion application process
 -->
 
 - ESLint with Nuxt.js recommended rules
@@ -224,7 +324,7 @@ To keep history consistent and searchable, the following scopes are allowed and 
 - ci — CI workflows, build pipelines, PR/branch policy
 - build — build tooling, bundler, config
 - refactor — internal refactors without behavior change
-  **Version**: 1.6.0 | **Ratified**: 2025-09-23 | **Last Amended**: 2025-09-26
+  **Version**: 1.7.0 | **Ratified**: 2025-09-23 | **Last Amended**: 2025-01-02
 
 ## MCP Tooling Standards (Prisma MCP)
 
