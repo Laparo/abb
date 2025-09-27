@@ -1,0 +1,88 @@
+name: Qodo Watcher
+
+on:
+  check_run:
+    types: [completed]
+  workflow_run:
+    workflows: ["Qodo"]
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  when-qodo-green-check:
+    name: Label PRs when Qodo check passes
+    if: >-
+      ${{ github.event_name == 'check_run' &&
+          contains(github.event.check_run.name, 'Qodo') &&
+          github.event.check_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add label to associated PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = (context.payload.check_run.pull_requests || []).map(pr => pr.number)
+            if (!prs.length) {
+              core.info('No PRs associated with this check_run.')
+              return
+            }
+            for (const number of prs) {
+              core.info(`Adding label to PR #${number}`)
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: number,
+                labels: ['qodo:passed']
+              })
+            }
+
+  when-qodo-green-workflow:
+    name: Label PRs when Qodo workflow passes
+    if: >-
+      ${{ github.event_name == 'workflow_run' && contains(github.event.workflow_run.name, 'Qodo') && github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure label exists
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = 'qodo:passed'
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: label,
+              })
+              core.info(`Label '${label}' exists.`)
+            } catch (e) {
+              core.info(`Creating label '${label}'`)
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: label,
+                color: '0E8A16',
+                description: 'Qodo checks succeeded',
+              })
+            }
+      - name: Add label to associated PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = (context.payload.workflow_run.pull_requests || []).map(pr => pr.number)
+            if (!prs.length) {
+              core.info('No PRs associated with this workflow_run.')
+              return
+            }
+            for (const number of prs) {
+              core.info(`Adding label to PR #${number}`)
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: number,
+                labels: ['qodo:passed']
+              })
+            }
