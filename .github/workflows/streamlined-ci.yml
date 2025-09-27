@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  checks: read
+
 env:
   NODE_VERSION: '20'
 
@@ -32,6 +36,42 @@ jobs:
 
       - name: 📦 Install dependencies
         run: npm ci --prefer-offline --no-audit
+
+      - name: ⏳ Wait for Qodo check to pass (max 10m)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/github-script@v7
+        env:
+          QODO_CHECK_NAME: Qodo
+        with:
+          script: |
+            const checkName = process.env.QODO_CHECK_NAME || 'Qodo'
+            const owner = context.repo.owner
+            const repo = context.repo.repo
+            let ref = context.sha
+            if (context.eventName === 'pull_request' && context.payload.pull_request?.head?.sha) {
+              ref = context.payload.pull_request.head.sha
+            }
+            core.info(`Waiting for check '${checkName}' on ${owner}/${repo}@${ref}`)
+            const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+            for (let i = 0; i < 60; i++) {
+              const res = await github.rest.checks.listForRef({ owner, repo, ref, per_page: 100 })
+              const cr = res.data.check_runs.find(c => (c.name || '').includes(checkName))
+              if (!cr) {
+                await sleep(10000)
+                continue
+              }
+              if (cr.status !== 'completed') {
+                await sleep(10000)
+                continue
+              }
+              if (cr.conclusion === 'success') {
+                core.info(`Qodo check passed. details: ${cr.details_url || 'n/a'}`)
+                return
+              }
+              core.setFailed(`Qodo check failed: ${cr.conclusion}. details: ${cr.details_url || 'n/a'}`)
+              return
+            }
+            core.setFailed('Timed out waiting for Qodo check to pass')
 
       # ✅ Build-kritische TypeScript Compilation (bleibt in CI)
       - name: 🔍 TypeScript Build Check
