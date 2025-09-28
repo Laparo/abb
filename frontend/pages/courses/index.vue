@@ -12,41 +12,38 @@
     </v-row>
     <v-row>
       <v-col v-for="c in courses || []" :key="c.id" cols="12" md="6" lg="4">
-        <v-card :to="`/courses/${c.id}`" class="h-100" variant="elevated">
-          <v-card-title>{{ c.title }}</v-card-title>
-          <v-card-text>
-            <div class="text-body-2">{{ c.description }}</div>
-            <div class="text-caption mt-2">
-              {{ formatDateRange(c.startAt, c.endAt) }}
-            </div>
-          </v-card-text>
-          <v-card-actions>
-            <v-btn :to="`/courses/${c.id}`" color="primary" variant="flat">Details</v-btn>
-          </v-card-actions>
-        </v-card>
+        <CourseCard
+          class="h-100"
+          :title="c.title"
+          :description="c.description || ''"
+          :date-range="formatDateRange(c.startAt, c.endAt)"
+          :preview-video-url="c.previewVideoUrl || undefined"
+        >
+          <template #actions>
+            <v-btn
+              :to="`/courses/${c.id}`"
+              color="primary"
+              variant="flat"
+              aria-label="Details zu {{ c.title }}"
+            >
+              Details
+            </v-btn>
+          </template>
+        </CourseCard>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import {
-  VContainer,
-  VRow,
-  VCol,
-  VAlert,
-  VCard,
-  VCardTitle,
-  VCardText,
-  VCardActions,
-  VBtn,
-} from 'vuetify/components'
+import { VContainer, VRow, VCol, VAlert, VBtn } from 'vuetify/components'
 import { useCourses } from '@/composables/useCourses'
+import CourseCard from '@/components/course/CourseCard.vue'
 
 useHead({ title: 'Kurse' })
 
 const { list } = useCourses()
-const { data, error } = await list()
+const { data, error } = await list({ limit: 10 })
 const courses = data.value
 
 function formatDateRange(start?: string | null, end?: string | null) {

@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  name       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // User can be a coach
+  coach      Coach?
+  
+  // User can have bookings
+  bookings   Booking[]
+  
+  @@map("users")
+}
+
+model Coach {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  bio         String?
+  specialties String[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses     Course[]
+  
+  @@map("coaches")
+}
+
+model Course {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  price       Decimal  @db.Decimal(10,2)
+  duration    Int      // Duration in minutes
+  maxParticipants Int  @default(1)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  coachId     Int
+  coach       Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  bookings    Booking[]
+  
+  // Indexes for performance
+  @@index([coachId])
+  @@index([isActive])
+  @@map("courses")
+}
+
+model Booking {
+  id          Int      @id @default(autoincrement())
+  status      BookingStatus @default(PENDING)
+  scheduledAt DateTime
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  userId      Int
+  courseId    Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  // Business rules
+  @@unique([userId, courseId, scheduledAt], name: "unique_user_course_time")
+  @@index([userId])
+  @@index([courseId])
+  @@index([scheduledAt])
+  @@index([status])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}

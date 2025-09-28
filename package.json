@@ -35,8 +35,10 @@
   "dependencies": {
     "@paypal/paypal-js": "^8.4.2",
     "@prisma/client": "^5.18.0",
+    "@sidebase/nuxt-auth": "^0.8.2",
+    "next-auth": "4.21.1",
     "nuxt": "^3.12.0",
-    "vuetify": "^3.6.0"
+    "vuetify": "^3.7.6"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
@@ -48,7 +50,7 @@
     "@types/node": "^20.19.17",
     "@typescript-eslint/eslint-plugin": "^8.8.1",
     "@typescript-eslint/parser": "^8.8.1",
-    "@vitejs/plugin-vue": "^6.0.1",
+  "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/coverage-v8": "^1.6.1",
     "@vue/test-utils": "^2.4.6",
     "axe-core": "^4.10.0",
@@ -68,7 +70,7 @@
     "tsx": "^4.19.1",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.44.1",
-    "vite-plugin-vuetify": "^2.0.3",
+  "vite-plugin-vuetify": "^2.0.5",
     "vitest": "^1.6.0",
     "vue-tsc": "^2.0.20"
   },

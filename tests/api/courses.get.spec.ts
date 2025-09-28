@@ -22,10 +22,19 @@ describe('GET /api/courses handler', () => {
 
   it('returns course list', async () => {
     const mod = await import('../../server/api/courses.get')
-    const handler = mod.default as unknown as (e?: unknown) => Promise<unknown>
-    const result = await handler()
-    expect(result).toEqual([
-      { id: 1, title: 'Course A', description: 'A', startAt: null, endAt: null, capacity: 10 },
-    ])
+    const handler = mod.default as unknown as (e: any) => Promise<any>
+    const event = { path: '/api/courses', node: { req: { url: '/api/courses?limit=5' } } }
+    const result = await handler(event)
+    expect(Array.isArray(result)).toBe(true)
+    expect(result[0]).toMatchObject({
+      id: 1,
+      title: 'Course A',
+      description: 'A',
+      startAt: null,
+      endAt: null,
+      capacity: 10,
+    })
+    // previewVideoUrl is mapped (may be null in this mock)
+    expect(result[0]).toHaveProperty('previewVideoUrl')
   })
 })

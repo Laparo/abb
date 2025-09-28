@@ -6,9 +6,5 @@
 		{
 			"path": "../vuetify-material-dashboard"
 		}
-	],
-	"settings": {
-		"liveServer.settings.multiRootWorkspaceName": "abb",
-		"codium.codeCompletion.enable": false
-	}
+	]
 }

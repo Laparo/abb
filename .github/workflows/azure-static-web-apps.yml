@@ -27,22 +27,23 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
+      - name: Install dependencies (frontend)
+        working-directory: frontend
         run: |
           npm ci
 
-      - name: Build application
+      - name: Build frontend application
+        working-directory: frontend
+        env:
+          NUXT_PUBLIC_API_BASE: ${{ secrets.NUXT_PUBLIC_API_BASE }}
+          NUXT_PUBLIC_ORIGIN: ${{ secrets.NUXT_PUBLIC_ORIGIN }}
         run: |
-          export NUXT_PUBLIC_API_BASE="${{ secrets.NUXT_PUBLIC_API_BASE }}"
-          export NUXT_PUBLIC_ORIGIN="${{ secrets.NUXT_PUBLIC_ORIGIN }}"
-          npm run build
+          npm run build:prod
 
       - name: Copy SWA config into build output
         run: |
-          if [ -f staticwebapp.config.json ]; then
-            cp staticwebapp.config.json .output/public/
-          elif [ -f frontend/staticwebapp.config.json ]; then
-            cp frontend/staticwebapp.config.json .output/public/
+          if [ -f frontend/staticwebapp.config.json ]; then
+            cp frontend/staticwebapp.config.json frontend/.output/public/
           fi
 
       - name: Build And Deploy (Static Upload)
@@ -52,7 +53,7 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: ".output/public"
+          app_location: "frontend/.output/public"
           output_location: "" # required when skip_app_build is true
           skip_app_build: true
           skip_api_build: true

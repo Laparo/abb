@@ -16,18 +16,23 @@ export default defineNuxtConfig({
       },
     },
   },
-  modules: ['@sidebase/nuxt-auth'],
-  auth: {
-    origin:
-      process.env.NUXT_AUTH_ORIGIN ||
-      process.env.AUTH_ORIGIN ||
-      process.env.NEXTAUTH_URL ||
-      process.env.AUTH_URL ||
-      'http://localhost:3000',
-    provider: {
-      type: 'authjs',
-    },
-  },
+  // Make auth module optional for static SWA builds (set NUXT_ENABLE_AUTH=false in CI)
+  modules: process.env.NUXT_ENABLE_AUTH !== 'false' ? ['@sidebase/nuxt-auth'] : [],
+  ...(process.env.NUXT_ENABLE_AUTH !== 'false'
+    ? {
+        auth: {
+          origin:
+            process.env.NUXT_AUTH_ORIGIN ||
+            process.env.AUTH_ORIGIN ||
+            process.env.NEXTAUTH_URL ||
+            process.env.AUTH_URL ||
+            'http://localhost:3000',
+          provider: {
+            type: 'authjs',
+          },
+        },
+      }
+    : {}),
   vite: {
     // Vuetify via Vite plugin
     ssr: {
