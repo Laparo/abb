@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
+      - name: Generate Nuxt types
+        run: npx nuxt prepare
+        
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
