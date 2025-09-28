@@ -10,6 +10,7 @@ on:
   push:
     branches:
       - main
+      - staging  # Added staging branch for preview deployments
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
