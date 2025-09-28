@@ -1,6 +1,7 @@
 name: Azure Static Web Apps CI/CD
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -14,6 +15,9 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,36 +31,67 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      - name: Install dependencies (frontend)
-        working-directory: frontend
+      # Retrieve a GitHub OIDC ID token for Azure Static Web Apps (policy must be set to GitHub in the SWA)
+      - name: Get GitHub OIDC Id Token
+        id: idtoken
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const core = require('@actions/core')
+            const id = await core.getIDToken()
+            return id
+          result-encoding: string
+
+      - name: Install dependencies
         run: |
           npm ci
 
-      - name: Build frontend application
-        working-directory: frontend
+      - name: Build static site (Nuxt generate)
         env:
-          NUXT_PUBLIC_API_BASE: ${{ secrets.NUXT_PUBLIC_API_BASE }}
-          NUXT_PUBLIC_ORIGIN: ${{ secrets.NUXT_PUBLIC_ORIGIN }}
+          NUXT_SSR: 'false'
         run: |
-          npm run build:prod
+          npm run generate
 
       - name: Copy SWA config into build output
         run: |
-          if [ -f frontend/staticwebapp.config.json ]; then
-            cp frontend/staticwebapp.config.json frontend/.output/public/
+          if [ -f staticwebapp.config.json ]; then
+            echo "Copying staticwebapp.config.json into build output"
+            mkdir -p .output/public
+            cp staticwebapp.config.json .output/public/
+          else
+            echo "No staticwebapp.config.json found; proceeding without custom SWA config"
           fi
 
       - name: Build And Deploy (Static Upload)
+        if: github.event_name == 'push'
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "frontend/.output/public"
+          app_location: ".output/public"
           output_location: "" # required when skip_app_build is true
           skip_app_build: true
           skip_api_build: true
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          github_id_token: ${{ steps.idtoken.outputs.result }}
+        env:
+          # Prevent hard failure when the deployment token is not configured yet
+          SKIP_DEPLOY_ON_MISSING_SECRETS: true
+
+      - name: Build And Deploy (PR validation - skip if secrets missing)
+        if: github.event_name == 'pull_request'
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          action: "upload"
+          app_location: ".output/public"
+          output_location: ""
+          skip_app_build: true
+          skip_api_build: true
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          github_id_token: ${{ steps.idtoken.outputs.result }}
+        env:
+          SKIP_DEPLOY_ON_MISSING_SECRETS: true
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -67,6 +102,9 @@ jobs:
         id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           app_location: "/"
           action: "close"
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          github_id_token: ${{ steps.idtoken.outputs.result }}
+        env:
+          SKIP_DEPLOY_ON_MISSING_SECRETS: true

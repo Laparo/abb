@@ -3,7 +3,10 @@ import { defineNuxtConfig } from 'nuxt/config'
 import path from 'node:path'
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
+const enableSSR = process.env.NUXT_SSR !== 'false'
+
 export default defineNuxtConfig({
+  ssr: enableSSR,
   compatibilityDate: '2025-09-27',
   typescript: {
     strict: true,

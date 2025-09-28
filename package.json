@@ -11,6 +11,8 @@
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
+    "generate": "NUXT_SSR=false nuxt generate",
+    "build:static": "NUXT_SSR=false nuxt build && nuxt generate",
     "start": "nuxt start",
     "start:prod": "node .output/server/index.mjs",
     "start:e2e": "dotenv -e .env.e2e -- node .output/server/index.mjs",
@@ -30,7 +32,8 @@
     "postinstall": "prisma generate || true",
     "lint:md": "markdownlint README.md docs/**/*.md",
     "mcp:prisma": "prisma mcp",
-    "apply:qodo": "tsx scripts/apply-qodo-suggestions.ts"
+    "apply:qodo": "tsx scripts/apply-qodo-suggestions.ts",
+    "deploy:frontend": "bash scripts/deploy-frontend.sh"
   },
   "dependencies": {
     "@paypal/paypal-js": "^8.4.2",
@@ -50,7 +53,7 @@
     "@types/node": "^20.19.17",
     "@typescript-eslint/eslint-plugin": "^8.8.1",
     "@typescript-eslint/parser": "^8.8.1",
-  "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/coverage-v8": "^1.6.1",
     "@vue/test-utils": "^2.4.6",
     "axe-core": "^4.10.0",
@@ -70,7 +73,7 @@
     "tsx": "^4.19.1",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.44.1",
-  "vite-plugin-vuetify": "^2.0.5",
+    "vite-plugin-vuetify": "^2.0.5",
     "vitest": "^1.6.0",
     "vue-tsc": "^2.0.20"
   },
