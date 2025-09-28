@@ -70,6 +70,7 @@ export default defineNuxtConfig({
     transpile: ['vuetify'],
   },
   nitro: {
+    preset: enableSSR ? 'node-server' : 'static',
     // Pin Nitro runtime behavior to a known date (see https://nitro.build/deploy#compatibility-date)
     compatibilityDate: '2025-09-27',
   },
