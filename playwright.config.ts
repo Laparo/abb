@@ -21,12 +21,10 @@ export default defineConfig({
   workers: 1,
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   webServer: {
-    // Stabilere Tests gegen lokalen Produktionsserver
-    // 1) Build (falls nicht vorhanden), 2) Start mit expliziter DB-URL
-    // Setze DATABASE_URL direkt, um Abhängigkeit von .env.e2e zu vermeiden
-    command: `npm run build && DATABASE_URL="${e2eDbUrl}" npm run start:prod`,
+    // Use production build for consistent results
+    command: 'npm run build && npm run start:prod',
     port: 3000,
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     timeout: 180_000,
   },
 })
