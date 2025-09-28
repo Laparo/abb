@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import type { Booking } from '@prisma/client'
 
-interface CreateBookingInput {
+interface CreateBookingInput extends Record<string, unknown> {
   userEmail: string
   courseId: number
 }
@@ -16,10 +16,7 @@ export const useBookings = () => {
   const error = ref<string | null>(null)
 
   const create = async (input: CreateBookingInput) => {
-    return await post<{ ok: boolean; bookingId: number }>(
-      '/api/bookings',
-      input
-    )
+    return await post<{ ok: boolean; bookingId: number }>('/api/bookings', input)
   }
 
   const getBookings = async (userId: number) => {

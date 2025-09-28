@@ -5,9 +5,32 @@ import type { User } from '@prisma/client'
 type BookingLite = { courseId: number; status: string }
 type LocalUser = User & { bookings?: BookingLite[]; status: string }
 
+interface SessionData {
+  value?: {
+    user?: {
+      id?: string
+      name?: string
+      email?: string
+    }
+  }
+}
+
+interface StatusRef {
+  value?: string
+}
+
+interface BaseAuth {
+  data?: SessionData
+  status?: StatusRef
+  signIn?: (...args: unknown[]) => Promise<unknown>
+  signOut?: (...args: unknown[]) => Promise<unknown>
+}
+
 export const useAppAuth = () => {
   // Original useAuth des Auth-Moduls (Auto-Import von sidebase/nuxt-auth)
-  const baseAuth: any = (globalThis as any).useAuth ? (useAuth as any)() : {}
+  const baseAuth: BaseAuth = (globalThis as { useAuth?: () => unknown }).useAuth
+    ? ((useAuth as () => unknown)() as BaseAuth)
+    : {}
   const { data: session, status, signIn: authSignIn, signOut: authSignOut } = baseAuth
   const localUser = ref<LocalUser | null>(null)
   const error = ref<string | null>(null)

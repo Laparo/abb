@@ -58,8 +58,8 @@ export const useMaterials = () => {
       const e = err as { data?: { message?: string }; message?: string; statusCode?: number }
       const errorMessage = e?.data?.message || e?.message || 'Failed to load materials'
       error.value = errorMessage
-      if ((e as any).statusCode) throw err
-      throw createError({ statusCode: (e as any).statusCode || 500, statusMessage: errorMessage })
+      if (e.statusCode) throw err
+      throw createError({ statusCode: e.statusCode || 500, statusMessage: errorMessage })
     } finally {
       isLoading.value = false
     }
