@@ -8,8 +8,6 @@ const enableSSR = process.env.NUXT_SSR !== 'false'
 export default defineNuxtConfig({
   ssr: enableSSR,
   compatibilityDate: '2025-09-27',
-  // Static generation for Azure Static Web Apps
-  ssr: process.env.NUXT_SSR !== 'false',
   typescript: {
     strict: true,
     typeCheck: false, // handled in CI via vue-tsc
@@ -72,11 +70,10 @@ export default defineNuxtConfig({
     transpile: ['vuetify'],
   },
   nitro: {
-    preset: enableSSR ? 'node-server' : 'static',
+    // Use Azure Static Web Apps preset when SSR is disabled, otherwise node-server
+    preset: enableSSR ? 'node-server' : 'azure-swa',
     // Pin Nitro runtime behavior to a known date (see https://nitro.build/deploy#compatibility-date)
     compatibilityDate: '2025-09-27',
-    // Use Azure Static Web Apps preset for proper deployment
-    preset: process.env.NUXT_SSR === 'false' ? 'azure-swa' : undefined,
     prerender: {
       routes: ['/'],
       crawlLinks: true,

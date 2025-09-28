@@ -20,6 +20,7 @@ Status: Draft
 ## Milestone 2: Geschützter Bereich + Materialien (Streaming only)
 
 ### Phase 3.1: Setup
+
 - [x] T020 [P] Configure authentication dependencies in `package.json`
 - [x] T021 [P] Update User schema with externalId and status fields in `prisma/schema.prisma`
 - [x] T022 Run Prisma migration for User schema changes
@@ -82,7 +83,6 @@ Note: These tests MUST be written and MUST FAIL before ANY implementation.
 - [ ] A11y: semantische Überschriften, Landmarken, Tastaturfokus, Kontrast; Axe-Checks
 - [ ] Performance/SSR: stabiler Hydration‑Flow, keine Layout‑Shifts für Above‑the‑Fold
 - [ ] Akzeptanz: Startseite und Kursliste folgen Coursera-inspiriertem Layout, max. 10 Karten sichtbar, Preview‑Video pro Kurs vorhanden
-
 
 ### Abnahmekriterien (Design/Zielgruppe)
 
