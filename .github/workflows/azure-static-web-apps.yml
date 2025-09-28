@@ -37,6 +37,14 @@ jobs:
           export NUXT_PUBLIC_ORIGIN="${{ secrets.NUXT_PUBLIC_ORIGIN }}"
           npm run build
 
+      - name: Copy SWA config into build output
+        run: |
+          if [ -f staticwebapp.config.json ]; then
+            cp staticwebapp.config.json .output/public/
+          elif [ -f frontend/staticwebapp.config.json ]; then
+            cp frontend/staticwebapp.config.json .output/public/
+          fi
+
       - name: Build And Deploy (Static Upload)
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -45,7 +53,9 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: ".output/public"
+          output_location: "" # required when skip_app_build is true
           skip_app_build: true
+          skip_api_build: true
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
