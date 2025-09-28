@@ -10,14 +10,70 @@ on:
     branches:
       - main
 
+concurrency:
+  group: swa-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  smoke_pr_job:
+    name: Smoke (PR) – Playwright
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PLAYWRIGHT_BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build (Nitro server)
+        run: npm run build
+      - name: Start server (background)
+        run: |
+          node .output/server/index.mjs &
+          echo $! > server.pid
+      - name: Wait for server
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3000 >/dev/null 2>&1; then echo "Server ready"; exit 0; fi
+            sleep 2
+          done
+          echo "Server not reachable" >&2
+          exit 1
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Run smoke spec
+        run: |
+          if [ -f e2e/smoke.spec.ts ]; then npx playwright test e2e/smoke.spec.ts --reporter=line; else echo "No smoke.spec.ts present"; fi
+      - name: Upload Playwright Smoke Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-smoke-report
+          path: playwright-report
+          if-no-files-found: ignore
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then kill $(cat server.pid) || true; fi
+
   build_and_deploy_job:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    # Für PRs nur ausführen, wenn Smoke erfolgreich; für Push/Dispatch unabhängig
+    needs: [smoke_pr_job]
+    if: (github.event_name == 'pull_request' && github.event.action != 'closed' && needs.smoke_pr_job.result == 'success') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,77 +87,60 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      # Retrieve a GitHub OIDC ID token for Azure Static Web Apps (policy must be set to GitHub in the SWA)
-      - name: Get GitHub OIDC Id Token
-        id: idtoken
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const core = require('@actions/core')
-            const id = await core.getIDToken()
-            return id
-          result-encoding: string
+      # OIDC Token direkt an Action übergeben (Action unterstützt id-token permissions)
+      - name: Prepare
+        run: echo "Using API token for Azure Static Web Apps deployment"
 
       - name: Install dependencies
         run: |
           npm ci
 
+      - name: Lint (ESLint + Markdown)
+        run: |
+          npm run lint
+          npm run lint:md || echo "Markdown Lint Warnungen (nicht blockierend)"
+
+      - name: Typecheck
+        run: |
+          npm run typecheck
+
+      - name: Unit Tests
+        run: |
+          npm test
+
+      - name: Coverage Gate
+        run: |
+          npm run test:coverage -- --reporter=dot
+
       - name: Build static site (Nuxt generate)
-        env:
-          NUXT_SSR: 'false'
         run: |
           npm run generate
 
-      # staticwebapp.config.json liegt jetzt in public/ und wird von Nuxt automatisch in .output/public übernommen
-
-      - name: Build And Deploy (Static Upload)
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        id: builddeploy
+      # Einheitlicher Upload-Schritt (SWA unterscheidet PR vs Prod intern über Event-Kontext)
+      - name: Upload to Azure Static Web Apps (API token)
         uses: Azure/static-web-apps-deploy@v1
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "."
-          output_location: ".output/public" # use prebuilt static output
-          skip_app_build: true
-          skip_api_build: true
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          github_id_token: ${{ steps.idtoken.outputs.result }}
-        env: {}
-
-      - name: Build And Deploy (PR validation - skip if secrets missing)
-        if: github.event_name == 'pull_request'
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          action: "upload"
-          app_location: "."
+          action: upload
+          app_location: "." # Nuxt Projektwurzel
           output_location: ".output/public"
           skip_app_build: true
           skip_api_build: true
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          github_id_token: ${{ steps.idtoken.outputs.result }}
-        env: {}
+          # Verwende API Token Secret (Production SWA)
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
     name: Close Pull Request Job
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - name: Get GitHub OIDC Id Token
-        id: idtoken_close
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const core = require('@actions/core')
-            const id = await core.getIDToken()
-            return id
-          result-encoding: string
-      - name: Close Pull Request
-        id: closepullrequest
+      - name: Close Pull Request (Azure SWA)
         uses: Azure/static-web-apps-deploy@v1
         with:
+          action: close
           app_location: "/"
-          action: "close"
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          github_id_token: ${{ steps.idtoken_close.outputs.result }}
-        env: {}
+          # OIDC wird automatisch verwendet
+          azure_static_web_apps_api_token: ${{ '' }}
