@@ -1,3 +1,4 @@
+export * from '~/composables/useCourses'
 export interface CourseListItem {
   id: number
   title: string

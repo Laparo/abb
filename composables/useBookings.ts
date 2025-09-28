@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import type { Booking } from '@prisma/client'
+
 interface CreateBookingInput {
   userEmail: string
   courseId: number
@@ -7,25 +8,25 @@ interface CreateBookingInput {
 
 export type BookingStatus = 'BOOKED' | 'CANCELLED' | 'COMPLETED'
 
+// Unified composable using the shared useApiClient helper
 export const useBookings = () => {
-  const config = useRuntimeConfig()
-  const base = config.public.apiBase?.replace(/\/$/, '') || ''
+  const { get, post } = useApiClient()
   const bookings = ref<Booking[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
   const create = async (input: CreateBookingInput) => {
-    return await $fetch<{ ok: boolean; bookingId: number }>(`${base}/api/bookings`, {
-      method: 'POST',
-      body: input,
-    })
+    return await post<{ ok: boolean; bookingId: number }>(
+      '/api/bookings',
+      input
+    )
   }
 
   const getBookings = async (userId: number) => {
     try {
       isLoading.value = true
       error.value = null
-      const res = await $fetch<Booking[]>(`${base}/api/bookings/${userId}`)
+      const res = await get<Booking[]>(`/api/bookings/${userId}`)
       bookings.value = res
       return res
     } catch (err) {

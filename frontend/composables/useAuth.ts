@@ -1,3 +1,5 @@
+// Weiterleitung auf vereinheitlichten Auth-Composable (noch nicht migriert)
+export * from '~/composables/useAuth'
 /**
  * SPA Authentication composable
  * Handles authentication via backend API calls

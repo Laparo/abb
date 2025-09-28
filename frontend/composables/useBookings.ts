@@ -1,3 +1,4 @@
+export * from '~/composables/useBookings'
 import { ref } from 'vue'
 import type { Booking } from '@prisma/client'
 interface CreateBookingInput {

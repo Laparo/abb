@@ -37,40 +37,40 @@ Dieser Abschnitt beschreibt die minimal notwendigen Schritte, um in eurem Micros
    - Öffne den soeben erstellten Flow → „Applications“ → „Add application“
    - Wähle deine App-Registrierung aus und bestätige mit „Select“
 
-1. Umgebungsvariablen in .env setzen/aktualisieren
+1. Umgebungsvariablen in .env setzen/aktualisieren (Single-App)
 
    Füge bzw. aktualisiere folgende Einträge:
 
 ```bash
 # ==== Auth.js / nuxt-auth ====
 NUXT_AUTH_ORIGIN="http://localhost:3000"
-NUXT_AUTH_SECRET="<sicherer-random-32+ Zeichen>"
+NUXT_AUTH_SECRET="<sicherer-random-32+Zeichen>"
 
 # ==== Microsoft Entra External ID ====
 NUXT_ENTRA_TENANT_ID="b9c21f48-ea16-41a0-946a-41441585616b"
-
-# Tenant Name vor .ciamlogin.com (aus Standarddomain: <TENANT_NAME>.onmicrosoft.com)
-NUXT_ENTRA_TENANT_NAME="LAPARO"
-
-# Empfohlen: vollständige Tenant Domain
+# Tenant Name (vor .onmicrosoft.com / .ciamlogin.com)
+NUXT_ENTRA_TENANT_NAME="laparo"
+# Vollständige Tenant Domain (empfohlen – ohne https)
 NUXT_ENTRA_TENANT_DOMAIN="laparo.onmicrosoft.com"
 
-# User Flow/Policy Name wie oben angelegt
-NUXT_ENTRA_POLICY_SIGNIN="signin"
-NUXT_ENTRA_POLICY_SIGNUP="signup"
+# Kombinierter SignUp/SignIn Flow – vollständiger Name inkl. Präfix!
+NUXT_ENTRA_POLICY_SIGNIN="B2C_1_signupsignin"
+# (Veraltet) Separater Signup Flow – nur setzen falls separat genutzt
+# NUXT_ENTRA_POLICY_SIGNUP="B2C_1_signup"  # optional, nicht nötig bei kombiniertem Flow
 
-# External ID Login Domain
+# Login Domain bleibt in External ID Tenants ciamlogin.com
 NUXT_ENTRA_LOGIN_DOMAIN="ciamlogin.com"
 
-# App Registration Werte
+# App Registration
 NUXT_ENTRA_CLIENT_ID="c33a9594-4b28-4ef6-93b2-2c00415e3787"
-NUXT_ENTRA_CLIENT_SECRET="aeea2129-70a9-4619-8750-d8e7f31049c1"
+NUXT_ENTRA_CLIENT_SECRET="aeea2129-70a9-4619-8750-d8e7f31049c1" # Confidential Web-App Szenario
 ```
 
 Hinweise:
 
 - Den `TENANT_NAME` findest du unter „Custom domain names“ (z. B. `contoso.onmicrosoft.com` → `contoso`).
 - Unsere Implementierung bevorzugt die Pfad-Variante der Well-known-URL mit Tenant-Domain. Falls die Domain nicht gesetzt ist, wird ein Fallback mit `?p=`-Parameter genutzt.
+- Der ursprüngliche Gebrauch von Kurzformen (`signin`, `signup`) wurde vereinheitlicht → bitte immer den vollständigen Policy Namen inklusive Präfix `B2C_1_` verwenden.
 
 1. Funktionstest durchführen
 
@@ -83,10 +83,10 @@ Hinweise:
 
 1. Produktion vorbereiten
 
-   - In der App-Registrierung zusätzlich die produktive Redirect URI hinterlegen: `https://<prod-domain>/api/auth/callback/microsoft-entra-external`
-   - In der Produktionsumgebung setzen:
-     - `NUXT_AUTH_ORIGIN="https://<prod-domain>"`
-     - eigener `NUXT_AUTH_SECRET`
+    - In der App-Registrierung zusätzlich die produktive Redirect URI hinterlegen: `https://<prod-domain>/api/auth/callback/microsoft-entra-external`
+    - In der Produktionsumgebung setzen:
+       - `NUXT_AUTH_ORIGIN="https://<prod-domain>"`
+       - eigener `NUXT_AUTH_SECRET`
 
 Referenzen (Microsoft Learn):
 
@@ -317,62 +317,64 @@ https://TENANT_NAME.ciamlogin.com/TENANT_DOMAIN/POLICY/v2.0/.well-known/openid-c
 
 ## 🚀 Produktionsdeployment
 
-### Hybride Azure-Architektur
+### Architektur (aktuell Single-App)
 
-**Diese Anwendung verwendet eine hybride Architektur:**
+Seit 2025-09 Konsolidierung: Keine separate Backend-App mehr. Nuxt 3 (inkl. Nitro API Routen unter `server/api/*`) wird statisch + Edge Functions via Azure Static Web Apps ausgeliefert.
 
-- **Frontend**: Azure Static Web Apps (SPA-Modus)
-- **Backend**: Azure App Service (API-Server)
+Alt (Backend App Service) = entfernt. Dokumentations-Abschnitte dazu wurden ersetzt. Falls erneut eine externe API benötigt wird, nutze `NUXT_PUBLIC_API_BASE` und stelle CORS sicher.
 
-### Produktions-Umgebungsvariablen
-
-#### Backend (.env auf Azure App Service)
+### Produktions-Umgebungsvariablen (Azure Static Web Apps → Konfiguration / GitHub Action Environments)
 
 ```bash
-# Backend API Origin
-NUXT_AUTH_ORIGIN="https://abb-backend.azurewebsites.net"
-NUXT_AUTH_SECRET="unterschiedlicher-produktions-secret"
+# Origin der produktiven Anwendung (SWA Domain oder Custom Domain)
+NUXT_AUTH_ORIGIN="https://<prod-domain>"
 
-# Database (Azure SQL oder SQLite)
-DATABASE_URL="file:./prod.db"
-
-# Microsoft Entra External ID (gleiche Werte wie Entwicklung)
+# Microsoft Entra External ID
 NUXT_ENTRA_TENANT_NAME="meinunternehmen"
 NUXT_ENTRA_TENANT_ID="12345678-1234-1234-1234-123456789abc"
 NUXT_ENTRA_CLIENT_ID="ihre-app-client-id"
-NUXT_ENTRA_CLIENT_SECRET="ihr-client-secret"
+NUXT_ENTRA_CLIENT_SECRET="ihr-client-secret"  # Nur wenn confidential client konfiguriert
 NUXT_ENTRA_POLICY_SIGNIN="B2C_1_signupsignin"
-NUXT_ENTRA_TENANT_DOMAIN="meinunternehmen.ciamlogin.com"
+NUXT_ENTRA_TENANT_DOMAIN="meinunternehmen.onmicrosoft.com"
 NUXT_ENTRA_LOGIN_DOMAIN="ciamlogin.com"
 
-# Materials Access
-MATERIALS_CDN_BASE_URL="/streaming"
-MATERIALS_SIGNING_SECRET="produktions-materials-secret"
+# Auth Secret (muss einzigartig & sicher sein)
+NUXT_AUTH_SECRET="unterschiedlicher-produktions-secret"
+
+# Optional – Externes API (falls später ausgelagert)
+# NUXT_PUBLIC_API_BASE="https://api.example.com"
 ```
 
-#### Frontend (.env für Azure Static Web Apps)
+### Redirect URIs (Produktion)
+
+Nur die statische App-Domain muss registriert sein:
+
+- `https://<prod-domain>/api/auth/callback/microsoft-entra-external`
+
+Lokale Entwicklung bleibt: `http://localhost:3000/api/auth/callback/microsoft-entra-external`
+
+### Secret Handling Hinweise
+
+- Secrets immer über SWA Environment / GitHub Actions Environments setzen – nicht in Git committen.
+- `NUXT_ENTRA_CLIENT_SECRET` nur nötig, wenn App Registration als „Web“ (confidential) mit Secret arbeitet. Für reine Public Client PKCE Szenarien weglassen.
+
+### Optionaler External-API-Modus (zukünftig)
+
+Falls später wieder eine ausgelagerte API eingeführt wird:
+
+1. `NUXT_PUBLIC_API_BASE` setzen (ohne trailing `/`).
+1. API muss CORS erlauben: `Origin: https://<prod-domain>` + Credentials falls nötig.
+1. Auth Flows unverändert – Callback bleibt bei der Nuxt App.
+
+Beispiel Health Check:
 
 ```bash
-# Frontend Origin (Azure Static Web Apps URL)
-NUXT_AUTH_ORIGIN="https://nice-coast-12345.azurestaticapps.net"
-
-# Backend API URL (muss auf Azure App Service zeigen)
-NUXT_PUBLIC_API_BASE="https://abb-backend.azurewebsites.net"
-
-# Authentication Secret (muss mit Backend übereinstimmen)
-NUXT_AUTH_SECRET="unterschiedlicher-produktions-secret"
+curl -I -H "Origin: https://<prod-domain>" https://api.example.com/api/health
 ```
 
-### Azure Entra External ID Konfiguration für Produktion
+### Migrationshinweis
 
-**Wichtig**: Beide URLs müssen als Redirect URIs registriert werden:
-
-1. **Im Azure Portal** → **App registrations** → **Ihre App** → **Authentication**
-2. **Redirect URIs hinzufügen**:
-   - Frontend (für OAuth-Callbacks): `https://nice-coast-12345.azurestaticapps.net/api/auth/callback/microsoft-entra-external`
-   - Backend (für API-Authentifizierung): `https://abb-backend.azurewebsites.net/api/auth/callback/microsoft-entra-external`
-
-3. **CORS konfigurieren** (falls nötig) für Cross-Origin-API-Calls zwischen Frontend und Backend
+Die frühere Dokumentation mit getrennten Blöcken „Backend (.env)“ und „Frontend (.env)“ ist obsolet. Historische Referenzen (z.B. `abb-backend.azurewebsites.net`) bitte nicht mehr verwenden.
 
 ## 📚 Weitere Ressourcen
 

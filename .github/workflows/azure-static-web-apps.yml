@@ -2,6 +2,11 @@ name: Azure Static Web Apps CI/CD
 
 on:
   workflow_dispatch:
+    inputs:
+      swa_token:
+        description: 'Azure Static Web Apps API Token (optional; falls Secret fehlt)'
+        required: false
+        type: string
   push:
     branches:
       - main
@@ -66,12 +71,12 @@ jobs:
         run: |
           if [ -f server.pid ]; then kill $(cat server.pid) || true; fi
 
-  build_and_deploy_job:
-    # Für PRs nur ausführen, wenn Smoke erfolgreich; für Push/Dispatch unabhängig
+  build_and_deploy_pr:
+    # PR-Build: nur ausführen, wenn Smoke erfolgreich; benötigt das Smoke-Job-Ergebnis
     needs: [smoke_pr_job]
-    if: (github.event_name == 'pull_request' && github.event.action != 'closed' && needs.smoke_pr_job.result == 'success') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && needs.smoke_pr_job.result == 'success'
     runs-on: ubuntu-latest
-    name: Build and Deploy Job
+    name: Build and Deploy (PR)
     permissions:
       contents: read
     steps:
@@ -87,13 +92,11 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      # OIDC Token direkt an Action übergeben (Action unterstützt id-token permissions)
       - name: Prepare
-        run: echo "Using API token for Azure Static Web Apps deployment"
+        run: echo "Using API token for Azure Static Web Apps deployment (PR)"
 
       - name: Install dependencies
-        run: |
-          npm ci
+        run: npm ci
 
       - name: Lint (ESLint + Markdown)
         run: |
@@ -101,33 +104,83 @@ jobs:
           npm run lint:md || echo "Markdown Lint Warnungen (nicht blockierend)"
 
       - name: Typecheck
-        run: |
-          npm run typecheck
+        run: npm run typecheck
 
       - name: Unit Tests
-        run: |
-          npm test
+        run: npm test
 
       - name: Coverage Gate
-        run: |
-          npm run test:coverage -- --reporter=dot
+        run: npm run test:coverage -- --reporter=dot
 
       - name: Build static site (Nuxt generate)
-        run: |
-          npm run generate
+        run: npm run generate
 
-      # Einheitlicher Upload-Schritt (SWA unterscheidet PR vs Prod intern über Event-Kontext)
       - name: Upload to Azure Static Web Apps (API token)
         uses: Azure/static-web-apps-deploy@v1
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
-          app_location: "." # Nuxt Projektwurzel
+          app_location: "."
           output_location: ".output/public"
           skip_app_build: true
           skip_api_build: true
-          # Verwende API Token Secret (Production SWA)
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD }}
+          # Nutze Secret, oder falls leer, den manuellen Workflow-Input
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD || github.event.inputs.swa_token }}
+
+  build_and_deploy_ci:
+    # Push/Dispatch-Build: unabhängig vom Smoke-Job
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    name: Build and Deploy (CI)
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Prepare
+        run: echo "Using API token for Azure Static Web Apps deployment (CI)"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (ESLint + Markdown)
+        run: |
+          npm run lint
+          npm run lint:md || echo "Markdown Lint Warnungen (nicht blockierend)"
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit Tests
+        run: npm test
+
+      - name: Coverage Gate
+        run: npm run test:coverage -- --reporter=dot
+
+      - name: Build static site (Nuxt generate)
+        run: npm run generate
+
+      - name: Upload to Azure Static Web Apps (API token)
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: "."
+          output_location: ".output/public"
+          skip_app_build: true
+          skip_api_build: true
+          # Nutze Secret, oder falls leer, den manuellen Workflow-Input
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD || github.event.inputs.swa_token }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -142,5 +195,5 @@ jobs:
         with:
           action: close
           app_location: "/"
-          # OIDC wird automatisch verwendet
-          azure_static_web_apps_api_token: ${{ '' }}
+          # Verwende Secret oder optional den Dispatch-Input
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD || github.event.inputs.swa_token }}

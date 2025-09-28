@@ -1,3 +1,5 @@
+// Re-export zentraler API Client
+export { useApiClient } from '~/composables/useApiClient'
 /**
  * API client for cross-origin calls to the backend
  */

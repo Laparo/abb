@@ -231,7 +231,8 @@ get_project_structure() {
     local project_type="$1"
     
     if [[ "$project_type" == *"web"* ]]; then
-        echo "backend/\\nfrontend/\\ntests/"
+        # Früher: backend/ und frontend/ (Monorepo-Ansatz). Nach Konsolidierung nur noch Root + tests.
+        echo "tests/"
     else
         echo "src/\\ntests/"
     fi

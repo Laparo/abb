@@ -218,3 +218,24 @@ if (!(globalThis as any).useAuth) {
     }),
   })
 }
+
+// --- Minimal Nuxt runtime config mock ---
+if (!(globalThis as any).useRuntimeConfig) {
+  ;(globalThis as any).useRuntimeConfig = () => ({
+    public: {
+      apiBase: '',
+    },
+  })
+}
+
+// --- Expose useApiClient via global for auto-import like behaviour in tests ---
+try {
+  if (!(globalThis as any).useApiClient) {
+    const mod = await import('../composables/useApiClient')
+    if (mod && typeof (mod as any).useApiClient === 'function') {
+      ;(globalThis as any).useApiClient = (mod as any).useApiClient
+    }
+  }
+} catch {
+  // ignore import issues; individual tests can mock instead
+}
