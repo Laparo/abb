@@ -2,28 +2,59 @@
  * API client for cross-origin calls to the backend
  * Centralized in root composables directory so Nuxt auto-import works.
  */
-interface ApiRequestOptions extends RequestInit {
+interface ApiRequestOptions {
+  /** HTTP method */
+  method?: string
+  /** Request headers */
+  headers?: Record<string, string>
   /** Optional body object that will be JSON.stringified automatically */
-  body?: any
+  body?: Record<string, unknown> | unknown[] | string | number | boolean | null
+}
+
+interface GlobalThis {
+  $fetch?: (
+    url: string,
+    options?: {
+      method?: string
+      headers?: Record<string, string>
+      body?: Record<string, unknown> | unknown[] | string | number | boolean | null
+    }
+  ) => Promise<unknown>
+}
+
+interface AuthSession {
+  value?: {
+    accessToken?: string
+  }
+}
+
+interface AuthResult {
+  session?: AuthSession
 }
 
 interface UseApiClientResult {
   apiCall: <T>(endpoint: string, options?: ApiRequestOptions) => Promise<T>
   get: <T>(endpoint: string) => Promise<T>
-  post: <T>(endpoint: string, data?: any) => Promise<T>
-  put: <T>(endpoint: string, data?: any) => Promise<T>
+  post: <T>(
+    endpoint: string,
+    data?: Record<string, unknown> | unknown[] | string | number | boolean | null
+  ) => Promise<T>
+  put: <T>(
+    endpoint: string,
+    data?: Record<string, unknown> | unknown[] | string | number | boolean | null
+  ) => Promise<T>
   delete: <T>(endpoint: string) => Promise<T>
 }
 
 export const useApiClient = (): UseApiClientResult => {
   // Versuche zuerst sidebase useAuth, sonst unsere erweiterte Variante useAppAuth
-  let session: any = { value: null }
+  let session: AuthSession = { value: undefined }
   try {
     if (typeof useAuth === 'function') {
-      const a: any = useAuth()
+      const a = useAuth() as AuthResult
       session = a?.session || session
     } else if (typeof useAppAuth === 'function') {
-      const a: any = useAppAuth()
+      const a = useAppAuth() as AuthResult
       session = a?.session || session
     }
   } catch {
@@ -35,30 +66,27 @@ export const useApiClient = (): UseApiClientResult => {
   const apiCall = async <T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> => {
     const base = apiBase.replace(/\/$/, '')
     const url = `${base}${endpoint}`
-    const token = (session as any)?.value?.accessToken
-    const hasNuxtFetch = typeof (globalThis as any).$fetch === 'function'
+    const token = (session as { value?: { accessToken?: string } })?.value?.accessToken
+    const hasNuxtFetch = typeof (globalThis as GlobalThis).$fetch === 'function'
 
     if (hasNuxtFetch) {
       // Nutzung von $fetch (unter Nuxt vorhanden, im Test via Mock) – relative URLs werden akzeptiert
-      const nuxtFetch: any = (globalThis as any).$fetch
-      try {
-  // Generic wird hier nicht angewandt, da Mock ungetypt ist
-  return await nuxtFetch(url, {
-          method: options.method || 'GET',
-          headers: {
-            ...(options.headers as Record<string, string> | undefined),
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: options.body,
-        })
-      } catch (e: any) {
-        // Fehler direkt weiterreichen (Tests erwarten H3/Fetch Fehlerstruktur)
-        throw e
-      }
+      const nuxtFetch = (globalThis as GlobalThis).$fetch!
+      // Generic wird hier nicht angewandt, da Mock ungetypt ist
+      return (await nuxtFetch(url, {
+        method: options.method || 'GET',
+        headers: {
+          ...(options.headers as Record<string, string> | undefined),
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: options.body,
+      })) as T
     }
 
     // Fallback: native fetch (Browser/Node). Hier brauchen wir absolute URL -> prefix falls relativ
-    const absoluteUrl = url.startsWith('http') ? url : `http://localhost${url.startsWith('/') ? '' : '/'}${url}`
+    const absoluteUrl = url.startsWith('http')
+      ? url
+      : `http://localhost${url.startsWith('/') ? '' : '/'}${url}`
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -79,8 +107,14 @@ export const useApiClient = (): UseApiClientResult => {
   }
 
   const get = <T>(endpoint: string) => apiCall<T>(endpoint, { method: 'GET' })
-  const post = <T>(endpoint: string, data?: any) => apiCall<T>(endpoint, { method: 'POST', body: data })
-  const put = <T>(endpoint: string, data?: any) => apiCall<T>(endpoint, { method: 'PUT', body: data })
+  const post = <T>(
+    endpoint: string,
+    data?: Record<string, unknown> | unknown[] | string | number | boolean | null
+  ) => apiCall<T>(endpoint, { method: 'POST', body: data })
+  const put = <T>(
+    endpoint: string,
+    data?: Record<string, unknown> | unknown[] | string | number | boolean | null
+  ) => apiCall<T>(endpoint, { method: 'PUT', body: data })
   const del = <T>(endpoint: string) => apiCall<T>(endpoint, { method: 'DELETE' })
 
   return { apiCall, get, post, put, delete: del }
