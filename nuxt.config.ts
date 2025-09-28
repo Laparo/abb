@@ -16,7 +16,18 @@ export default defineNuxtConfig({
       },
     },
   },
-  modules: [],
+  modules: ['@sidebase/nuxt-auth'],
+  auth: {
+    origin:
+      process.env.NUXT_AUTH_ORIGIN ||
+      process.env.AUTH_ORIGIN ||
+      process.env.NEXTAUTH_URL ||
+      process.env.AUTH_URL ||
+      'http://localhost:3000',
+    provider: {
+      type: 'authjs',
+    },
+  },
   vite: {
     // Vuetify via Vite plugin
     ssr: {
@@ -53,5 +64,26 @@ export default defineNuxtConfig({
   nitro: {
     // Pin Nitro runtime behavior to a known date (see https://nitro.build/deploy#compatibility-date)
     compatibilityDate: '2025-09-27',
+  },
+  runtimeConfig: {
+    public: {
+      // Basis-URL für API-Aufrufe im statischen Hosting (SWA)
+      // Wird über NUXT_PUBLIC_API_BASE gesetzt; leer => relative Pfade
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
+      auth: {
+        // Key name the auth module uses to read origin from env
+        originEnvKey: 'NUXT_AUTH_ORIGIN',
+        computed: {
+          origin:
+            process.env.NUXT_AUTH_ORIGIN ||
+            process.env.AUTH_ORIGIN ||
+            process.env.NEXTAUTH_URL ||
+            process.env.AUTH_URL ||
+            'http://localhost:3000',
+          // default path for auth endpoints in nuxt-auth
+          pathname: '/api/auth',
+        },
+      },
+    },
   },
 })
