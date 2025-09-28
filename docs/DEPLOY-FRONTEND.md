@@ -5,26 +5,24 @@ Die Anwendung wurde konsolidiert: Es existiert nur noch eine Nuxt 3 Codebasis (R
 ## 🏗️ **Prerequisites**
 
 1. **Azure Account** with active subscription
-2. **Azure CLI** installed: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
-3. **SWA CLI** installed: `npm install -g @azure/static-web-apps-cli`
-4. **Frontend built** for production
+1. **Azure CLI** installed: [Install Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
+1. **SWA CLI** installed: `npm install -g @azure/static-web-apps-cli` (optional, nur für lokale Deploys notwendig)
+1. **Frontend built** for production
 
 ## 🚀 **Method 1: Using Azure CLI (Recommended)**
 
 ### Step 1: Login to Azure
 
-```bash
+````bash
 az login
-```
 
-### Step 2: Create Resource Group (if needed)
+- Öffne Developer Tools (Netzwerk)
+- Prüfe relative Requests oder korrekten `NUXT_PUBLIC_API_BASE`
+- CORS Response Header kontrollieren
 
-```bash
-az group create --name abb-resources --location "West Europe"
-```
-
-### Step 3: Create Static Web App (erstmalige Anlage)
-
+1. **Test Authentication** (falls aktiviert)
+    - Microsoft Entra Login ausführen
+    - Prüfen, ob Redirect-URL passt
 ```bash
 az staticwebapp create \
     --name abb-frontend \
@@ -36,25 +34,24 @@ az staticwebapp create \
     --output-location ".output/public" \
     --skip-app-build true
 
-Hinweis: `--skip-app-build true` weil der Build durch GitHub Actions erledigt wird. Lokal kann man auch zuerst `npm run build` ausführen und dann ohne Skip deployen.
-```
+
+Hinweis: `--skip-app-build true`, weil der Build durch GitHub Actions erledigt wird. Lokal kann man auch zuerst `npm run build`/`npm run generate` ausführen und dann ohne Skip deployen.
 
 ### Step 4: (Optional) API Basis-URL setzen
 
 ```bash
-# Set production API base URL
+# Set production API base URL and feature flags
 az staticwebapp appsettings set \
     --name abb-frontend \
     --resource-group abb-resources \
-    --setting-names NUXT_PUBLIC_API_BASE="" \
-    --setting-names NUXT_ENABLE_AUTH="false"
+    --setting-names NUXT_PUBLIC_API_BASE="" NUXT_ENABLE_AUTH="false"
 
 # Set frontend origin
 az staticwebapp appsettings set \
     --name abb-frontend \
     --resource-group abb-resources \
     --setting-names NUXT_PUBLIC_ORIGIN="https://abb-frontend.azurestaticapps.net"
-```
+````
 
 ## 🛠️ **Method 2: Using SWA CLI**
 
@@ -81,16 +78,21 @@ swa deploy .output/public \
 
 ## 🔧 **Method 3: Using GitHub Actions (Automated)**
 
-The project includes a GitHub Actions workflow in `.github/workflows/azure-static-web-apps.yml`.
+Das Projekt enthält ein GitHub-Actions-Workflow in `.github/workflows/azure-static-web-apps.yml`.
 
 ### Step 1: Set Repository Secrets
 
-In your GitHub repository settings, add these secrets:
+In deinem GitHub-Repository unter Settings → Secrets and variables → Actions folgende Secrets/Variablen setzen:
 
 ```text
-AZURE_STATIC_WEB_APPS_API_TOKEN: [Your deployment token from Azure Portal]
-NUXT_PUBLIC_API_BASE: (leer oder externer API Origin)
-NUXT_PUBLIC_ORIGIN: https://abb-frontend.azurestaticapps.net
+Secrets
+———
+AZURE_STATIC_WEB_APPS_API_TOKEN_PROD = [Deployment-Token aus Azure Portal]
+
+Variables (optional)
+———
+NUXT_PUBLIC_API_BASE = (leer oder externer API Origin)
+NUXT_PUBLIC_ORIGIN = https://abb-frontend.azurestaticapps.net
 ```
 
 ### Step 2: Push to Main Branch
@@ -101,7 +103,7 @@ git commit -m "Deploy frontend to Azure Static Web Apps"
 git push origin main
 ```
 
-The workflow will automatically build and deploy on every push to main.
+Der Workflow baut und deployed automatisch bei jedem Push auf `main`. Alternativ kannst du ihn manuell über „Run workflow“ auslösen und einen temporären Deployment-Token als Input `swa_token` übergeben (falls kein Secret gesetzt ist).
 
 ## 🌐 **Post-Deployment Configuration**
 
@@ -127,43 +129,38 @@ Configure a custom domain in Azure Portal:
 
 ## 🔍 **Verification Steps**
 
-1. **Check Deployment Status**:
+1. **Check Deployment Status**
 
 ```bash
 az staticwebapp show --name abb-frontend --resource-group abb-resources
 ```
 
-1. **Visit Your Site**:
+1. **Visit Your Site**: <https://abb-frontend.azurestaticapps.net>
 
-```text
-https://abb-frontend.azurestaticapps.net
-```
-
-1. **Test API Connectivity**:
+1. **Test API Connectivity**
 
 ```bash
 # Falls externe API gesetzt ist, Beispiel-Request (anpassen)
 curl -I https://example-api.yourdomain.tld/api/health
 ```
 
-    - Öffne Developer Tools (Netzwerk)
-    - Prüfe relative Requests oder korrekten `NUXT_PUBLIC_API_BASE`
-    - CORS Response Header kontrollieren
+- Öffne Developer Tools (Netzwerk)
+- Prüfe relative Requests oder korrekten `NUXT_PUBLIC_API_BASE`
+- CORS Response Header kontrollieren
 
-1. **Test Authentication** (falls aktiviert):
-    - Microsoft Entra Login ausführen
-    - Redirect-URL stimmt
+1. **Test Authentication** (falls aktiviert)
+   - Microsoft Entra Login ausführen
+   - Prüfen, ob Redirect-URL passt
 
 ## 🐛 **Troubleshooting**
 
 ### Build Errors
 
 ```bash
-# Clean and rebuild
-cd frontend
+# Clean and rebuild (Repo-Root)
 rm -rf node_modules .nuxt .output
-npm install
-npm run build:prod
+npm ci
+npm run build
 ```
 
 ### CORS Issues
@@ -207,4 +204,3 @@ After successful deployment:
 - ✅ API Calls funktionieren (relative oder konfigurierter externer Origin)
 - ✅ Authentication redirects work
 - ✅ Static assets load properly
-
