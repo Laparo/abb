@@ -1,0 +1,15 @@
+{
+  // Lokale TSConfig für das Frontend-Build, um die Root-TSConfig zu umgehen
+  // (die im CI auf ein nicht vorhandenes .nuxt im Repo-Root verweisen kann).
+  "extends": "./.nuxt/tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "vite/client",
+      "vuetify"
+    ]
+  },
+  "include": [
+    "./**/*",
+    "./.nuxt/typed-router.d.ts"
+  ]
+}
