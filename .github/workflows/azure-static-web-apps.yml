@@ -1,83 +1,68 @@
-name: 🌐 Azure Static Web Apps (Staging)
-
-# Optimized for Staging Deployment - Quality Checks delegated to Qodo
-# This workflow now depends on streamlined-ci for essential checks
+name: Azure Static Web Apps CI/CD
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/azure-static-web-apps.yml'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
-
-env:
-  NODE_VERSION: '20'
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/azure-static-web-apps.yml'
 
 jobs:
-  # ⚡ Dependency auf streamlined CI für essential checks
-  wait-for-essential-checks:
+  build_and_deploy_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
-    name: 🔗 Wait for Essential CI Checks
+    name: Build and Deploy Job
     steps:
-      - name: 📋 Check Status
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
         run: |
-          echo "✅ Essential CI checks (streamlined-ci.yml) must pass before deployment"
-          echo "🤖 Style/Quality checks handled by Qodo"
-          echo "🚀 Ready for Azure deployment after essential checks pass"
+          cd frontend
+          npm ci
 
-  build_and_deploy:
-    needs: wait-for-essential-checks
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
-    runs-on: ubuntu-latest
-    name: Build and Deploy to Azure Static Web Apps
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Build application
+        run: |
+          cd frontend
+          export NUXT_PUBLIC_API_BASE="${{ secrets.NUXT_PUBLIC_API_BASE }}"
+          export NUXT_PUBLIC_ORIGIN="${{ secrets.NUXT_PUBLIC_ORIGIN }}"
+          npm run build:prod
 
-      # Azure deployment with integrated build and test pipeline
-      - name: Deploy to Azure Static Web Apps (with Unit Tests)
+      - name: Build And Deploy
         id: builddeploy
-        if: vars.AZURE_DEPLOYMENT_ENABLED == 'true'
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: upload
-          app_location: "/"
-          api_location: ".output/server"
-          output_location: ".output/public"
-          # Let Azure handle the build and test pipeline in Free Tier
-          skip_app_build: false
-          # Azure build configuration for Free Tier
-          app_build_command: |
-            npm ci --prefer-offline --no-audit &&
-            npm run test -- --reporter=dot --run &&
-            npm run build
-          api_build_command: "npm run build"
+          action: "upload"
+          app_location: "frontend/.output/public"
+          skip_app_build: true
 
-      - name: Prisma migrate deploy (Production)
-        if: github.ref == 'refs/heads/main' && vars.AZURE_DEPLOYMENT_ENABLED == 'true'
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          PRISMA_SCHEMA: prisma/schema.prod.prisma
-        run: |
-          if [ ! -f "$PRISMA_SCHEMA" ]; then
-            echo "WARN: $PRISMA_SCHEMA not found. Falling back to default schema.prisma";
-            export PRISMA_SCHEMA=prisma/schema.prisma;
-          fi
-          npx prisma migrate deploy
-
-  close_pull_request:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && vars.AZURE_DEPLOYMENT_ENABLED == 'true'
+  close_pull_request_job:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
-    name: Close Azure SWA PR Environment
+    name: Close Pull Request Job
     steps:
-      - name: Close PR Environment
+      - name: Close Pull Request
+        id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          action: close
-          app_location: "/"  # Required parameter
+          action: "close"
