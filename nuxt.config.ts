@@ -5,6 +5,8 @@ import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-09-27',
+  // Static generation for Azure Static Web Apps
+  ssr: process.env.NUXT_SSR !== 'false',
   typescript: {
     strict: true,
     typeCheck: false, // handled in CI via vue-tsc
@@ -53,5 +55,11 @@ export default defineNuxtConfig({
   nitro: {
     // Pin Nitro runtime behavior to a known date (see https://nitro.build/deploy#compatibility-date)
     compatibilityDate: '2025-09-27',
+    // Use Azure Static Web Apps preset for proper deployment
+    preset: process.env.NUXT_SSR === 'false' ? 'azure-swa' : undefined,
+    prerender: {
+      routes: ['/'],
+      crawlLinks: true,
+    },
   },
 })
