@@ -14,10 +14,8 @@ export type VuetifyThemeOption = 'light' | 'dark'
 // in test-only utility code with a clear migration note.
 export function mountWithVuetify<T extends Component>(
   component: T,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   options: MountingOptions<InstanceType<any>> = {},
   theme: VuetifyThemeOption = 'light'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): VueWrapper<any> {
   const vuetify = createVuetify({
     components,
@@ -26,7 +24,7 @@ export function mountWithVuetify<T extends Component>(
       defaultTheme: theme,
     },
   })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   return mount(component as any, {
     ...options,
     global: {

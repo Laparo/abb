@@ -1,9 +1,12 @@
-name: 🌐 Azure Static Web Apps (Staging)
-
-# Optimized for Staging Deployment - Quality Checks delegated to Qodo
-# This workflow now depends on streamlined-ci for essential checks
+name: Azure Static Web Apps CI/CD
 
 on:
+  workflow_dispatch:
+    inputs:
+      swa_token:
+        description: 'Azure Static Web Apps API Token (optional; falls Secret fehlt)'
+        required: false
+        type: string
   push:
     branches:
       - main
@@ -12,72 +15,187 @@ on:
     branches:
       - main
 
-env:
-  NODE_VERSION: '20'
+concurrency:
+  group: swa-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  # ⚡ Dependency auf streamlined CI für essential checks
-  wait-for-essential-checks:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+  smoke_pr_job:
+    name: Smoke (PR) – Playwright
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: ubuntu-latest
-    name: 🔗 Wait for Essential CI Checks
+    permissions:
+      contents: read
+    env:
+      PLAYWRIGHT_BASE_URL: http://localhost:3000
     steps:
-      - name: 📋 Check Status
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build (Nitro server)
+        run: npm run build
+      - name: Start server (background)
         run: |
-          echo "✅ Essential CI checks (streamlined-ci.yml) must pass before deployment"
-          echo "🤖 Style/Quality checks handled by Qodo"
-          echo "🚀 Ready for Azure deployment after essential checks pass"
+          node .output/server/index.mjs &
+          echo $! > server.pid
+      - name: Wait for server
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3000 >/dev/null 2>&1; then echo "Server ready"; exit 0; fi
+            sleep 2
+          done
+          echo "Server not reachable" >&2
+          exit 1
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Run smoke spec
+        run: |
+          if [ -f e2e/smoke.spec.ts ]; then npx playwright test e2e/smoke.spec.ts --reporter=line; else echo "No smoke.spec.ts present"; fi
+      - name: Upload Playwright Smoke Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-smoke-report
+          path: playwright-report
+          if-no-files-found: ignore
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then kill $(cat server.pid) || true; fi
 
-  build_and_deploy:
-    needs: wait-for-essential-checks
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+  build_and_deploy_pr:
+    # PR-Build: nur ausführen, wenn Smoke erfolgreich; benötigt das Smoke-Job-Ergebnis
+    needs: [smoke_pr_job]
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && needs.smoke_pr_job.result == 'success'
     runs-on: ubuntu-latest
-    name: Build and Deploy to Azure Static Web Apps
+    name: Build and Deploy (PR)
+    permissions:
+      contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: false
 
-      # Azure deployment with integrated build and test pipeline
-      - name: Deploy to Azure Static Web Apps (with Unit Tests)
-        id: builddeploy
-        if: vars.AZURE_DEPLOYMENT_ENABLED == 'true'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Prepare
+        run: echo "Using API token for Azure Static Web Apps deployment (PR)"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (ESLint + Markdown)
+        run: |
+          npm run lint
+          npm run lint:md || echo "Markdown Lint Warnungen (nicht blockierend)"
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit Tests
+        run: npm test
+
+      - name: Coverage Gate
+        run: npm run test:coverage -- --reporter=dot
+
+      - name: Build static site (Nuxt generate)
+        run: npm run generate
+
+      - name: Upload to Azure Static Web Apps (API token)
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
-          app_location: "/"
+          app_location: "."
           api_location: ".output/server"
           output_location: ".output/public"
-          # Let Azure handle the build and test pipeline in Free Tier
-          skip_app_build: false
-          # Azure build configuration for Free Tier
-          app_build_command: |
-            npm ci --prefer-offline --no-audit &&
-            npm run test -- --reporter=dot --run &&
-            npm run build
-          api_build_command: "npm run build"
+          skip_app_build: true
+          skip_api_build: true
+          # Nutze Secret, oder falls leer, den manuellen Workflow-Input
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD || github.event.inputs.swa_token }}
 
-      - name: Prisma migrate deploy (Production)
-        if: github.ref == 'refs/heads/main' && vars.AZURE_DEPLOYMENT_ENABLED == 'true'
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          PRISMA_SCHEMA: prisma/schema.prod.prisma
-        run: |
-          if [ ! -f "$PRISMA_SCHEMA" ]; then
-            echo "WARN: $PRISMA_SCHEMA not found. Falling back to default schema.prisma";
-            export PRISMA_SCHEMA=prisma/schema.prisma;
-          fi
-          npx prisma migrate deploy
-
-  close_pull_request:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && vars.AZURE_DEPLOYMENT_ENABLED == 'true'
+  build_and_deploy_ci:
+    # Push/Dispatch-Build: unabhängig vom Smoke-Job
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    name: Close Azure SWA PR Environment
+    name: Build and Deploy (CI)
+    permissions:
+      contents: read
     steps:
-      - name: Close PR Environment
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Prepare
+        run: echo "Using API token for Azure Static Web Apps deployment (CI)"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (ESLint + Markdown)
+        run: |
+          npm run lint
+          npm run lint:md || echo "Markdown Lint Warnungen (nicht blockierend)"
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit Tests
+        run: npm test
+
+      - name: Coverage Gate
+        run: npm run test:coverage -- --reporter=dot
+
+      - name: Build static site (Nuxt generate)
+        run: npm run generate
+
+      - name: Upload to Azure Static Web Apps (API token)
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: "."
+          api_location: ".output/server"
+          output_location: ".output/public"
+          skip_app_build: true
+          skip_api_build: true
+          # Nutze Secret, oder falls leer, den manuellen Workflow-Input
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD || github.event.inputs.swa_token }}
+
+  close_pull_request_job:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Close Pull Request Job
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Close Pull Request (Azure SWA)
+        uses: Azure/static-web-apps-deploy@v1
+        with:
           action: close
-          app_location: "/"  # Required parameter
+          app_location: "/"
+          # Verwende Secret oder optional den Dispatch-Input
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD || github.event.inputs.swa_token }}

@@ -66,10 +66,18 @@ export default [
   // Nuxt-specific overrides: allow single-word names for pages and error component,
   // and turn off no-undef due to Nuxt auto-imports in SFCs
   {
-    files: ['pages/**/*.vue', 'error.vue'],
+    files: ['**/*.vue'],
     rules: {
       'vue/multi-word-component-names': 'off',
       'no-undef': 'off',
+    },
+  },
+
+  // Tests: relax strict any usage to keep specs concise
+  {
+    files: ['tests/**/*.{ts,js,vue}', 'e2e/**/*.{ts,js}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 ]

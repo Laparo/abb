@@ -119,8 +119,22 @@ Konsistenzregeln:
 
 - Milestone 1: Public Kursliste/Detail + Buchung (ohne Payment), E‑Mail-Bestätigung
 - Milestone 2: Geschützter Bereich + Materialzugriff (Streaming only)
-- Milestone 3: Storno-Workflow (14‑Tage Grenze) + DSGVO-Löschung
-- Milestone 4: Observability-Basics + Hardening
+- Milestone 3: Öffentliche Website – Struktur und Design (Coursera-inspiriert, max. 10 Kurse)
+  - Fokus: Start/Landing + Kursbereich mit visuell prominenter Darstellung
+  - Anforderungen:
+  - Layout orientiert an <https://www.coursera.org>
+    - Ein öffentlicher Bereich zur Darstellung der Kurse (max. 10 Einträge gleichzeitig sichtbar)
+    - Jeder Kurs zeigt Titel, Beschreibung und Referenz‑Video (Preview), um Interessenten einen Eindruck zu geben
+    - Starke visuelle Hierarchie (Hero, Grid/Karten, klare Call‑to‑Actions)
+    - SSR‑freundlich, a11y‑konform, responsive
+    - Zielgruppe: berufstätige Frauen zwischen 35 und 55 Jahren, die beruflich weiterkommen wollen; hoher Anspruch an Ästhetik und Wertigkeit
+    - Visuelle Leitplanken:
+      - Farbschema, Flächengestaltung und Übersichtlichkeit mit Anleihen an <https://www.villeroy-boch.de/r/wohn-esszimmer/nehmen>
+      - Keine Möbel- oder Deko‑Bildwelten auf der öffentlichen Website
+      - Florale Elemente sind möglich, jedoch stilisiert (Illustration/Pattern), um nicht in Konflikt mit Vorschaubildern/Videos zu geraten
+      - Videos stellen Gesprächssituationen zwischen zwei oder mehreren Personen dar; ruhige, wertige Bildsprache ohne Konkurrenz zum UI
+- Milestone 4: Storno-Workflow (14‑Tage Grenze) + DSGVO-Löschung
+- Milestone 5: Observability-Basics + Hardening
 
 ## 12. Out of Scope (v1)
 

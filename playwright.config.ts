@@ -21,10 +21,21 @@ export default defineConfig({
   workers: 1,
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   webServer: {
-    // Use production build for consistent results
-    command: 'npm run build && npm run start:prod',
+    // Stabilere Tests gegen lokalen Produktionsserver
+    // 1) Build (falls nicht vorhanden), 2) Start mit expliziter DB-URL
+    // Setze DATABASE_URL direkt, um Abhängigkeit von .env.e2e zu vermeiden
+    command: `npm run build && npm run start:prod`,
     port: 3000,
     reuseExistingServer: false,
     timeout: 180_000,
+    env: {
+      DATABASE_URL: e2eDbUrl,
+      NUXT_AUTH_ORIGIN: 'http://localhost:3000',
+      NUXT_AUTH_SECRET: 'test-e2e-secret-change-me',
+      NEXTAUTH_URL: 'http://localhost:3000',
+      AUTH_URL: 'http://localhost:3000',
+      AUTH_ORIGIN: 'http://localhost:3000',
+      AUTH_TRUST_HOST: 'true',
+    },
   },
 })

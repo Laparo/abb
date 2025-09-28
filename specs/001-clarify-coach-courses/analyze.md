@@ -6,7 +6,7 @@ Status: Completed (spec defaults eingepflegt; pending final review checklist)
 
 ## Zusammenfassung
 
-Diese Analyse prüft die Konsistenz zwischen Spezifikation, Plan und aktuellem Codezustand (Nuxt 3 + Vuetify + Prisma). Ergebnis: Milestone 1 (Öffentliche Kurse + Buchung) ist weitgehend umgesetzt; nachgelagerte Anforderungen (Auth/Materials/Storno/DSGVO/E-Mail) stehen aus und sind in späteren Meilensteinen vorgesehen.
+Diese Analyse prüft die Konsistenz zwischen Spezifikation, Plan und aktuellem Codezustand (Nuxt 3 + Vuetify + Prisma). Ergebnis: Milestone 1 (Öffentliche Kurse + Buchung) ist weitgehend umgesetzt; Milestone 2 (Geschützter Bereich + Materialien) ist geplant; ein neuer Milestone 3 (Öffentliche Website – Struktur & Design) wurde eingefügt; Storno/DSGVO ist nun Milestone 4; Observability/Hardening ist Milestone 5. Nachgelagerte Anforderungen (Auth/Materials/Storno/DSGVO/E-Mail) stehen entsprechend aus und sind den Meilensteinen zugeordnet.
 
 ## Mapping: Anforderungen (FR-001 … FR-013) → Status
 
@@ -21,10 +21,10 @@ Diese Analyse prüft die Konsistenz zwischen Spezifikation, Plan und aktuellem C
 - FR-007 E-Mail-Benachrichtigungen (Buchung/Events): TBD (Adapter + Templates fehlen)
 - FR-008 Suche/Filter im öffentlichen Bereich: Optional/TBD
 - FR-009 Login via externer IdP (Entra External ID, OIDC PKCE): TBD (Milestone 2)
-- FR-010 DSGVO-Löschung auf Anforderung: TBD (Milestone 3)
+- FR-010 DSGVO-Löschung auf Anforderung: TBD (Milestone 4)
 - FR-011 Unbegrenzter Zugriff bis Konto-Löschung: TBD (Milestone 2 – Policy/Enforcement)
 - FR-012 Videos nur Streaming, kein Download: TBD (Milestone 2 – Streaming-Proxy/Signierte URLs/CDN)
-- FR-013 Storno bis 14 Tage vor Start: TBD (Milestone 3)
+- FR-013 Storno bis 14 Tage vor Start: TBD (Milestone 4)
 
 ## Tests & Qualität
 

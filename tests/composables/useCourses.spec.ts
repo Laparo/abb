@@ -3,7 +3,7 @@
 vi.stubGlobal(
   'useFetch',
   vi.fn(async (url: string) => {
-    if (url === '/api/courses') {
+    if (url === '/api/courses' || url.startsWith('/api/courses?')) {
       return { data: [{ id: 1, title: 'A' }], error: null }
     }
     if (url?.startsWith('/api/courses/')) {

@@ -3,7 +3,10 @@ import { defineNuxtConfig } from 'nuxt/config'
 import path from 'node:path'
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
+const enableSSR = process.env.NUXT_SSR !== 'false'
+
 export default defineNuxtConfig({
+  ssr: enableSSR,
   compatibilityDate: '2025-09-27',
   // Static generation for Azure Static Web Apps
   ssr: process.env.NUXT_SSR !== 'false',
@@ -18,7 +21,23 @@ export default defineNuxtConfig({
       },
     },
   },
-  modules: [],
+  // Make auth module optional for static SWA builds (set NUXT_ENABLE_AUTH=false in CI)
+  modules: process.env.NUXT_ENABLE_AUTH !== 'false' ? ['@sidebase/nuxt-auth'] : [],
+  ...(process.env.NUXT_ENABLE_AUTH !== 'false'
+    ? {
+        auth: {
+          origin:
+            process.env.NUXT_AUTH_ORIGIN ||
+            process.env.AUTH_ORIGIN ||
+            process.env.NEXTAUTH_URL ||
+            process.env.AUTH_URL ||
+            'http://localhost:3000',
+          provider: {
+            type: 'authjs',
+          },
+        },
+      }
+    : {}),
   vite: {
     // Vuetify via Vite plugin
     ssr: {
@@ -53,6 +72,7 @@ export default defineNuxtConfig({
     transpile: ['vuetify'],
   },
   nitro: {
+    preset: enableSSR ? 'node-server' : 'static',
     // Pin Nitro runtime behavior to a known date (see https://nitro.build/deploy#compatibility-date)
     compatibilityDate: '2025-09-27',
     // Use Azure Static Web Apps preset for proper deployment
@@ -60,6 +80,27 @@ export default defineNuxtConfig({
     prerender: {
       routes: ['/'],
       crawlLinks: true,
+    },
+  },
+  runtimeConfig: {
+    public: {
+      // Basis-URL für API-Aufrufe im statischen Hosting (SWA)
+      // Wird über NUXT_PUBLIC_API_BASE gesetzt; leer => relative Pfade
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
+      auth: {
+        // Key name the auth module uses to read origin from env
+        originEnvKey: 'NUXT_AUTH_ORIGIN',
+        computed: {
+          origin:
+            process.env.NUXT_AUTH_ORIGIN ||
+            process.env.AUTH_ORIGIN ||
+            process.env.NEXTAUTH_URL ||
+            process.env.AUTH_URL ||
+            'http://localhost:3000',
+          // default path for auth endpoints in nuxt-auth
+          pathname: '/api/auth',
+        },
+      },
     },
   },
 })

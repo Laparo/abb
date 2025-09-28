@@ -8,11 +8,14 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  name      String?
-  createdAt DateTime  @default(now())
-  bookings  Booking[]
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  name       String?
+  externalId String?   @unique /// OIDC sub/oid from Entra External ID
+  /// Status: ACTIVE | INACTIVE | DELETED
+  status     String    @default("ACTIVE")
+  createdAt  DateTime  @default(now())
+  bookings   Booking[]
 }
 
 /// Hinweis: Enums werden von SQLite/Prisma nicht nativ unterstützt.

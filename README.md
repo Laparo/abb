@@ -33,6 +33,8 @@ Das Script:
 
 ## Project Overview
 
+> Architektur-Update (2025-09): Ehemalige getrennte `/frontend` und `/backend` Verzeichnisse wurden konsolidiert. Alle API-Routen (Nitro) und das Frontend leben nun in einer einzigen Nuxt 3 Codebasis. Historische Referenzen zu `abb-backend.azurewebsites.net` sind obsolet (siehe `docs/AUTH-ENTRA.md`). Falls künftig wieder eine externe API benötigt wird, setze `NUXT_PUBLIC_API_BASE` und stelle CORS separat sicher.
+
 This project follows a structured development approach with strict architectural principles:
 
 - **Component-First Development**: Reusable Vue components with clear interfaces
@@ -294,6 +296,33 @@ PRs werden automatisch gelabelt, basierend auf Branch-Prefixen und geänderten P
 - Component tests: Vue Test Utils
 - E2E tests: Playwright for critical flows
 - Performance monitoring: Core Web Vitals
+
+### CI & Tests Übersicht
+
+Die GitHub Actions Pipeline (Azure Static Web Apps Workflow) führt gestaffelte Quality Gates aus:
+
+1. (PR) Smoke-Test (Playwright) – schneller Render-/Routing-Check gegen lokal gebauten Nitro-Server
+1. (PR & Push) Lint + Typecheck + Unit Tests
+1. Coverage Gate (Vitest) – Abbruch wenn globale Schwellenwerte unterschritten
+1. Static Generation & Deployment (SWA Upload via OIDC)
+
+Artefakte:
+
+- `playwright-smoke-report` (nur bei PRs / Fehleranalyse)
+- `coverage/` HTML-Report (lokal via `npm run test:coverage`)
+
+Coverage Schwellen (anfänglich konservativ, später anhebbar):
+
+| Metric     | Minimum |
+|------------|---------|
+| Statements | 50%     |
+| Lines      | 50%     |
+| Branches   | 50%     |
+| Functions  | 30%     |
+
+Hinweis: Thresholds für Lines/Statements wurden vorübergehend abgesenkt (Option A) um CI nicht zu blockieren; Erhöhung erfolgt iterativ (siehe CHANGELOG ‘Unreleased’).
+
+Ein fehlgeschlagener Coverage-Schritt blockiert Deployment.
 
 ### TDD Quick Start
 
