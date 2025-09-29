@@ -1,6 +1,10 @@
 {
   "routes": [
     {
+      "route": "/courses",
+      "rewrite": "/courses/index.html"
+    },
+    {
       "route": "/",
       "rewrite": "/index.html"
     }

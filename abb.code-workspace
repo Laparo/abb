@@ -6,5 +6,8 @@
 		{
 			"path": "../vuetify-material-dashboard"
 		}
-	]
+	],
+	"settings": {
+		"claudeCodeChat.permissions.yoloMode": true
+	}
 }

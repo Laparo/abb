@@ -17,6 +17,28 @@ export default defineNuxtConfig({
     },
   },
   modules: ['@sidebase/nuxt-auth'],
+
+  // Runtime Configuration
+  runtimeConfig: {
+    // Private keys (only available on server-side)
+    authSecret: process.env.NUXT_AUTH_SECRET,
+
+    // Public keys (exposed to client-side)
+    public: {
+      authUrl: process.env.NUXT_PUBLIC_AUTH_URL || '/api/auth',
+    },
+  },
+
+  // Auth Configuration
+  auth: {
+    baseURL:
+      process.env.AUTH_ORIGIN ||
+      process.env.NUXT_PUBLIC_AUTH_URL ||
+      'http://localhost:3000/api/auth',
+    provider: {
+      type: 'authjs',
+    },
+  },
   vite: {
     // Vuetify via Vite plugin
     ssr: {
@@ -89,7 +111,9 @@ export default defineNuxtConfig({
     preset: 'azure-swa',
     // Prerendering für statische Seitenerstellung
     prerender: {
-      routes: ['/'],
+      routes: ['/', '/courses'],
+      crawlLinks: true,
+      failOnError: false,
     },
   },
   // Static site generation für Azure Static Web Apps
