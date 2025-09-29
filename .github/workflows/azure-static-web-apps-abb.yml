@@ -77,18 +77,17 @@ jobs:
           NUXT_PUBLIC_API_BASE: ${{ vars.NUXT_PUBLIC_API_BASE }}
           NUXT_PUBLIC_ORIGIN: ${{ vars.NUXT_PUBLIC_ORIGIN }}
 
-      - name: Deploy to Azure Static Web Apps (GitHub Auth)
+      - name: Deploy to Azure Static Web Apps
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          # Use GitHub deployment authorization (no API token needed)
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ABB }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: ${{ needs.setup.outputs.app_location }}
           output_location: ${{ needs.setup.outputs.output_location }}
           skip_app_build: true
           production_branch: main
-          # GitHub deployment authorization policy - no azure_static_web_apps_api_token needed
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -103,6 +102,5 @@ jobs:
         id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ABB }}
           action: "close"
-          # GitHub deployment authorization policy - no API token needed
