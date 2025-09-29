@@ -32,15 +32,15 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "environment=production" >> $GITHUB_OUTPUT
-            echo "app_location=frontend" >> $GITHUB_OUTPUT
+            echo "app_location=." >> $GITHUB_OUTPUT
             echo "output_location=.output/public" >> $GITHUB_OUTPUT
           elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
             echo "environment=staging" >> $GITHUB_OUTPUT
-            echo "app_location=frontend" >> $GITHUB_OUTPUT
+            echo "app_location=." >> $GITHUB_OUTPUT
             echo "output_location=.output/public" >> $GITHUB_OUTPUT
           else
             echo "environment=pr" >> $GITHUB_OUTPUT
-            echo "app_location=frontend" >> $GITHUB_OUTPUT
+            echo "app_location=." >> $GITHUB_OUTPUT
             echo "output_location=.output/public" >> $GITHUB_OUTPUT
           fi
 
@@ -67,15 +67,11 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install frontend dependencies
-        run: |
-          cd frontend
-          npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Build frontend
-        run: |
-          cd frontend
-          npm run build:prod
+      - name: Build for static deployment
+        run: npm run build:static
         env:
           # Environment-specific variables
           NUXT_PUBLIC_API_BASE: ${{ vars.NUXT_PUBLIC_API_BASE }}
