@@ -11,59 +11,103 @@ on:
       - main
       - staging
 
+concurrency:
+  group: swa-abb-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   NODE_VERSION: '20'
 
 jobs:
+  # Determine deployment environment based on branch
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      app_location: ${{ steps.env.outputs.app_location }}
+      output_location: ${{ steps.env.outputs.output_location }}
+    steps:
+      - name: Determine environment
+        id: env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "app_location=frontend" >> $GITHUB_OUTPUT
+            echo "output_location=.output/public" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "app_location=frontend" >> $GITHUB_OUTPUT
+            echo "output_location=.output/public" >> $GITHUB_OUTPUT
+          else
+            echo "environment=pr" >> $GITHUB_OUTPUT
+            echo "app_location=frontend" >> $GITHUB_OUTPUT
+            echo "output_location=.output/public" >> $GITHUB_OUTPUT
+          fi
+
   build_and_deploy_job:
+    needs: setup
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
-    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    environment:
+      name: ${{ needs.setup.outputs.environment }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
           lfs: false
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Generate Nuxt types
-        run: npx nuxt prepare
-        
-      - name: Build And Deploy
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build:prod
+        env:
+          # Environment-specific variables
+          NUXT_PUBLIC_API_BASE: ${{ vars.NUXT_PUBLIC_API_BASE }}
+          NUXT_PUBLIC_ORIGIN: ${{ vars.NUXT_PUBLIC_ORIGIN }}
+
+      - name: Deploy to Azure Static Web Apps (GitHub Auth)
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
-        env:
-          NUXT_SSR: 'false'
-          NUXT_ENABLE_AUTH: 'false'
-          NODE_ENV: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ABB }}
+          # Use GitHub deployment authorization (no API token needed)
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          ###### Repository/Build Configurations ######
-          app_location: "/"
-          api_location: ".output/server"
-          output_location: ".output/public"
-          ###### End of Repository/Build Configurations ######
+          app_location: ${{ needs.setup.outputs.app_location }}
+          output_location: ${{ needs.setup.outputs.output_location }}
+          skip_app_build: true
+          production_branch: main
+          # GitHub deployment authorization policy - no azure_static_web_apps_api_token needed
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
     name: Close Pull Request Job
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
     steps:
       - name: Close Pull Request
         id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ABB }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "close"
-          app_location: "/"
+          # GitHub deployment authorization policy - no API token needed
