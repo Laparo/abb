@@ -3,12 +3,12 @@ name: Azure Static Web Apps CI/CD
 on:
   push:
     branches:
-      - main
+      - production
       - staging
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
-      - main
+      - production
       - staging
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
-    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    environment: ${{ github.ref_name == 'production' && 'production' || 'staging' }}
     permissions:
        id-token: write
        contents: read
