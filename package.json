@@ -9,7 +9,8 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "dev": "nuxt dev",
+    "dev": "NODE_OPTIONS=\"--max-old-space-size=4096\" nuxt dev",
+    "dev:stable": "NODE_OPTIONS=\"--max-old-space-size=4096 --max-http-header-size=16384\" nuxt dev --no-fork",
     "build": "nuxt build",
     "generate": "NUXT_SSR=false nuxt generate",
     "build:static": "NUXT_SSR=false nuxt build && nuxt generate",

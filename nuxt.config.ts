@@ -3,11 +3,8 @@ import { defineNuxtConfig } from 'nuxt/config'
 import path from 'node:path'
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
-const enableSSR = process.env.NUXT_SSR !== 'false'
-
 export default defineNuxtConfig({
-  ssr: enableSSR,
-  compatibilityDate: '2025-09-27',
+  compatibilityDate: '2025-09-29',
   typescript: {
     strict: true,
     typeCheck: false, // handled in CI via vue-tsc
@@ -19,30 +16,12 @@ export default defineNuxtConfig({
       },
     },
   },
-  // Make auth module optional for static SWA builds (set NUXT_ENABLE_AUTH=false in CI)
-  modules: process.env.NUXT_ENABLE_AUTH !== 'false' ? ['@sidebase/nuxt-auth'] : [],
-  ...(process.env.NUXT_ENABLE_AUTH !== 'false'
-    ? {
-        auth: {
-          origin:
-            process.env.NUXT_AUTH_ORIGIN ||
-            process.env.AUTH_ORIGIN ||
-            process.env.NEXTAUTH_URL ||
-            process.env.AUTH_URL ||
-            'http://localhost:3000',
-          provider: {
-            type: 'authjs',
-          },
-        },
-      }
-    : {}),
+  modules: ['@sidebase/nuxt-auth'],
   vite: {
     // Vuetify via Vite plugin
     ssr: {
       noExternal: ['vuetify'],
     },
-    // Achtung: Keine manuelle Chunk-Aufteilung, da dies Nuxts Chunk-Graph stören kann
-    // und zu Runtime-Fehlern wie "Cannot access 'Ao' before initialization" führen kann.
     server: {
       fs: {
         // Zugriff auf externes Dashboard-Repo (Sibling) erlauben
@@ -60,44 +39,51 @@ export default defineNuxtConfig({
         transformAssetUrls,
       },
     },
-    plugins: [
-      // Disable auto-import for better bundle size control - components must be explicitly imported
-      vuetify({ autoImport: false }),
-    ],
+    // Vite plugins are injected via hook below to ensure proper order in Nuxt
+  },
+  hooks: {
+    // Ensure Vuetify Vite plugin is added for both client and server builds
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    'vite:extendConfig'(config: any) {
+      // Initialize plugins array if missing and push Vuetify plugin
+      ;(config.plugins || (config.plugins = [])).push(vuetify({ autoImport: true }))
+
+      // EBADF-Fix: Optimiere Vite dev server file watching
+      if (config.server) {
+        config.server.watch = {
+          usePolling: true, // Polling reduziert EBADF auf MacOS
+          interval: 2500, // Weniger häufig prüfen
+          binaryInterval: 5000, // Noch seltener für Binärdateien
+          ignored: [
+            '**/node_modules/**',
+            '**/.git/**',
+            '**/dist/**',
+            '**/.nuxt/**',
+            '**/.output/**',
+            '**/coverage/**',
+            '**/playwright-report/**',
+            '**/test-results/**',
+            '**/prisma/**',
+            '**/dev-e2e.db',
+            '**/dev.db',
+            '**/migrations/**',
+          ],
+        }
+
+        // Stabilere HMR-Konfiguration
+        config.server.hmr = {
+          port: 24678,
+          clientPort: 24678,
+        }
+      }
+    },
   },
   css: ['vuetify/styles'],
   build: {
     transpile: ['vuetify'],
   },
   nitro: {
-    // Use Azure Static Web Apps preset when SSR is disabled, otherwise node-server
-    preset: enableSSR ? 'node-server' : 'azure-swa',
     // Pin Nitro runtime behavior to a known date (see https://nitro.build/deploy#compatibility-date)
-    compatibilityDate: '2025-09-27',
-    prerender: {
-      routes: ['/'],
-      crawlLinks: true,
-    },
-  },
-  runtimeConfig: {
-    public: {
-      // Basis-URL für API-Aufrufe im statischen Hosting (SWA)
-      // Wird über NUXT_PUBLIC_API_BASE gesetzt; leer => relative Pfade
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
-      auth: {
-        // Key name the auth module uses to read origin from env
-        originEnvKey: 'NUXT_AUTH_ORIGIN',
-        computed: {
-          origin:
-            process.env.NUXT_AUTH_ORIGIN ||
-            process.env.AUTH_ORIGIN ||
-            process.env.NEXTAUTH_URL ||
-            process.env.AUTH_URL ||
-            'http://localhost:3000',
-          // default path for auth endpoints in nuxt-auth
-          pathname: '/api/auth',
-        },
-      },
-    },
+    compatibilityDate: '2025-09-29',
   },
 })

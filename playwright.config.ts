@@ -26,7 +26,7 @@ export default defineConfig({
     // Setze DATABASE_URL direkt, um Abhängigkeit von .env.e2e zu vermeiden
     command: `npm run build && npm run start:prod`,
     port: 3000,
-    reuseExistingServer: false,
+    reuseExistingServer: true,
     timeout: 180_000,
     env: {
       DATABASE_URL: e2eDbUrl,
