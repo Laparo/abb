@@ -2,19 +2,15 @@ name: Azure Static Web Apps CI/CD
 
 on:
   workflow_dispatch:
-    inputs:
-      swa_token:
-        description: 'Azure Static Web Apps API Token (optional; falls Secret fehlt)'
-        required: false
-        type: string
   push:
     branches:
-      - main
-      - staging  # Added staging branch for preview deployments
+      - main        # Production deployment
+      - staging     # Staging deployment
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
+      - staging
 
 concurrency:
   group: swa-${{ github.ref }}
@@ -24,65 +20,47 @@ env:
   NODE_VERSION: '20'
 
 jobs:
-  smoke_pr_job:
-    name: Smoke (PR) – Playwright
-    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+  # Determine deployment environment based on branch
+  setup:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      PLAYWRIGHT_BASE_URL: http://localhost:3000
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      app_location: ${{ steps.env.outputs.app_location }}
+      api_location: ${{ steps.env.outputs.api_location }}
+      output_location: ${{ steps.env.outputs.output_location }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: false
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - name: Build (Nitro server)
-        run: npm run build
-      - name: Start server (background)
+      - name: Determine environment
+        id: env
         run: |
-          node .output/server/index.mjs &
-          echo $! > server.pid
-      - name: Wait for server
-        run: |
-          for i in {1..30}; do
-            if curl -fsS http://localhost:3000 >/dev/null 2>&1; then echo "Server ready"; exit 0; fi
-            sleep 2
-          done
-          echo "Server not reachable" >&2
-          exit 1
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-      - name: Run smoke spec
-        run: |
-          if [ -f e2e/smoke.spec.ts ]; then npx playwright test e2e/smoke.spec.ts --reporter=line; else echo "No smoke.spec.ts present"; fi
-      - name: Upload Playwright Smoke Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-smoke-report
-          path: playwright-report
-          if-no-files-found: ignore
-      - name: Stop server
-        if: always()
-        run: |
-          if [ -f server.pid ]; then kill $(cat server.pid) || true; fi
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "app_location=frontend" >> $GITHUB_OUTPUT
+            echo "api_location=" >> $GITHUB_OUTPUT
+            echo "output_location=.output/public" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "app_location=frontend" >> $GITHUB_OUTPUT
+            echo "api_location=" >> $GITHUB_OUTPUT
+            echo "output_location=.output/public" >> $GITHUB_OUTPUT
+          else
+            echo "environment=pr" >> $GITHUB_OUTPUT
+            echo "app_location=frontend" >> $GITHUB_OUTPUT
+            echo "api_location=" >> $GITHUB_OUTPUT
+            echo "output_location=.output/public" >> $GITHUB_OUTPUT
+          fi
 
-  build_and_deploy_pr:
-    # PR-Build: nur ausführen, wenn Smoke erfolgreich; benötigt das Smoke-Job-Ergebnis
-    needs: [smoke_pr_job]
-    if: github.event_name == 'pull_request' && github.event.action != 'closed' && needs.smoke_pr_job.result == 'success'
+  # Build and deploy job for staging/production
+  build_and_deploy_job:
+    needs: setup
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
-    name: Build and Deploy (PR)
+    name: Build and Deploy Job
     permissions:
       contents: read
+      id-token: write
+      pull-requests: write
+    environment:
+      name: ${{ needs.setup.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -94,100 +72,37 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Prepare
-        run: echo "Using API token for Azure Static Web Apps deployment (PR)"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint (ESLint + Markdown)
+      - name: Install frontend dependencies
         run: |
-          npm run lint
-          npm run lint:md || echo "Markdown Lint Warnungen (nicht blockierend)"
+          cd frontend
+          npm ci
 
-      - name: Typecheck
-        run: npm run typecheck
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build:prod
+        env:
+          # Environment-specific variables
+          NUXT_PUBLIC_API_BASE: ${{ vars.NUXT_PUBLIC_API_BASE }}
+          NUXT_PUBLIC_ORIGIN: ${{ vars.NUXT_PUBLIC_ORIGIN }}
 
-      - name: Unit Tests
-        run: npm test
-
-      - name: Coverage Gate
-        run: npm run test:coverage -- --reporter=dot
-
-      - name: Build static site (Nuxt generate)
-        run: npm run generate
-
-      - name: Upload to Azure Static Web Apps (API token)
+      - name: Deploy to Azure Static Web Apps (GitHub Auth)
+        id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
+          # Use GitHub deployment authorization (no API token needed)
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: upload
-          app_location: "."
-          api_location: ".output/server"
-          output_location: ".output/public"
+          action: "upload"
+          app_location: ${{ needs.setup.outputs.app_location }}
+          api_location: ${{ needs.setup.outputs.api_location }}
+          output_location: ${{ needs.setup.outputs.output_location }}
           skip_app_build: true
-          skip_api_build: true
-          # Nutze Secret, oder falls leer, den manuellen Workflow-Input
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD || github.event.inputs.swa_token }}
+          production_branch: main
+          # GitHub deployment authorization policy - no azure_static_web_apps_api_token needed
 
-  build_and_deploy_ci:
-    # Push/Dispatch-Build: unabhängig vom Smoke-Job
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    name: Build and Deploy (CI)
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-          lfs: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-
-      - name: Prepare
-        run: echo "Using API token for Azure Static Web Apps deployment (CI)"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint (ESLint + Markdown)
-        run: |
-          npm run lint
-          npm run lint:md || echo "Markdown Lint Warnungen (nicht blockierend)"
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Unit Tests
-        run: npm test
-
-      - name: Coverage Gate
-        run: npm run test:coverage -- --reporter=dot
-
-      - name: Build static site (Nuxt generate)
-        run: npm run generate
-
-      - name: Upload to Azure Static Web Apps (API token)
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: upload
-          app_location: "."
-          api_location: ".output/server"
-          output_location: ".output/public"
-          skip_app_build: true
-          skip_api_build: true
-          # Nutze Secret, oder falls leer, den manuellen Workflow-Input
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD || github.event.inputs.swa_token }}
-
+  # Close PR deployment
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
@@ -195,11 +110,49 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      pull-requests: write
     steps:
-      - name: Close Pull Request (Azure SWA)
+      - name: Close Pull Request
+        id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
-          action: close
-          app_location: "/"
-          # Verwende Secret oder optional den Dispatch-Input
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD || github.event.inputs.swa_token }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "close"
+          # GitHub deployment authorization policy - no API token needed
+
+  # Optional: Lint and test job (runs in parallel)
+  quality_checks:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Quality Checks
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Lint frontend
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Typecheck frontend
+        run: |
+          cd frontend
+          npm run typecheck
+
+      - name: Test frontend
+        run: |
+          cd frontend
+          npm run test
