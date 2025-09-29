@@ -5,6 +5,12 @@ import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-09-29',
+  // Für Azure Static Web Apps generation verwenden
+  nitro: {
+    // Pin Nitro runtime behavior to a known date (see https://nitro.build/deploy#compatibility-date)
+    compatibilityDate: '2025-09-29',
+    preset: 'azure-swa',
+  },
   typescript: {
     strict: true,
     typeCheck: false, // handled in CI via vue-tsc
@@ -85,5 +91,6 @@ export default defineNuxtConfig({
   nitro: {
     // Pin Nitro runtime behavior to a known date (see https://nitro.build/deploy#compatibility-date)
     compatibilityDate: '2025-09-29',
+    preset: 'azure-swa',
   },
 })
