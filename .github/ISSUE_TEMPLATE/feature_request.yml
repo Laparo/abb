@@ -1,0 +1,117 @@
+name: ✨ Feature Request
+description: Suggest an idea for this project
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! ✨
+        
+        Before submitting, please:
+        - Search existing issues and discussions to avoid duplicates
+        - Consider if this aligns with the project's mission of female empowerment
+        - Think about how this would benefit the community
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see
+      placeholder: I would like to see...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions or features you've considered
+      placeholder: I have also considered...
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would improve my experience
+        - High - Essential for my use case
+        - Critical - Blocking my ability to use the platform
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: Which area of the application does this feature relate to?
+      options:
+        - User Interface/Experience
+        - Course Management
+        - Coach Profiles
+        - Booking System
+        - Authentication/Security
+        - Accessibility
+        - Performance
+        - Mobile/Responsive
+        - Admin Dashboard
+        - Notifications
+        - Search/Filtering
+        - Other (please specify in additional context)
+
+  - type: textarea
+    id: user_story
+    attributes:
+      label: User Story
+      description: Write a user story for this feature
+      placeholder: |
+        As a [type of user],
+        I want [some goal]
+        So that [some reason/benefit]
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What conditions must be met for this feature to be considered complete?
+      placeholder: |
+        - [ ] Criteria 1
+        - [ ] Criteria 2
+        - [ ] Criteria 3
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups/Wireframes
+      description: If you have any mockups, wireframes, or visual examples, please attach them
+      placeholder: Drag and drop images here
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or examples about the feature request here
+
+  - type: checkboxes
+    id: alignment
+    attributes:
+      label: Mission Alignment
+      description: Please confirm this feature aligns with our mission
+      options:
+        - label: This feature supports female empowerment through education and coaching
+          required: true
+        - label: This feature would benefit the broader community of women users
+          required: true
+        - label: I have searched for existing similar requests before creating this one
+          required: true

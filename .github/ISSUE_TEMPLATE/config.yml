@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 General Discussion
+    url: https://github.com/Laparo/abb/discussions
+    about: Ask questions, share ideas, and connect with the community
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/Laparo/abb/security/advisories/new
+    about: Report security vulnerabilities privately (DO NOT use public issues)
+  - name: 📧 General Support
+    url: https://github.com/Laparo/abb/discussions/categories/support
+    about: Get help and support from the community
+  - name: 🐦 Follow Us
+    url: https://twitter.com/LaparoTech
+    about: Stay updated with the latest news and announcements

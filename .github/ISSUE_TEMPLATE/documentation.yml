@@ -1,0 +1,116 @@
+name: 📖 Documentation Issue
+description: Report an issue with documentation or suggest improvements
+title: "[Docs]: "
+labels: ["documentation", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation! 📖
+        
+        Clear documentation is essential for community contributions and user success.
+
+  - type: dropdown
+    id: doc_type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation is this about?
+      options:
+        - README.md
+        - Contributing Guidelines
+        - Setup/Installation Guide
+        - API Documentation
+        - Code Comments
+        - Architecture Documentation
+        - Deployment Guide
+        - User Guide
+        - Other (please specify)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of documentation issue is this?
+      options:
+        - Missing Information
+        - Incorrect Information
+        - Outdated Information
+        - Unclear Instructions
+        - Broken Links
+        - Formatting Issues
+        - Grammar/Spelling
+        - Accessibility Issues
+        - New Documentation Request
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: Where is this documentation located?
+      placeholder: e.g., README.md line 45, docs/SETUP.md, or URL
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_content
+    attributes:
+      label: Current Content
+      description: What does the current documentation say? (copy and paste if relevant)
+      placeholder: Current documentation content...
+
+  - type: textarea
+    id: issue_description
+    attributes:
+      label: Issue Description
+      description: Describe the problem with the current documentation
+      placeholder: The issue is...
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested_improvement
+    attributes:
+      label: Suggested Improvement
+      description: How should this be improved or what should be added?
+      placeholder: I suggest...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Target Audience
+      description: Who is the primary audience for this documentation?
+      multiple: true
+      options:
+        - New Contributors
+        - Experienced Developers
+        - End Users
+        - System Administrators
+        - Coaches/Instructors
+        - Project Maintainers
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any additional context, screenshots, or examples
+      placeholder: Additional information...
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true
+        - label: I have provided specific location information
+          required: true
+        - label: I have clearly described the issue and suggested improvement
+          required: true

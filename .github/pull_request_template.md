@@ -1,115 +1,70 @@
-# PR-Template
+# 🚀 Pull Request
 
 <!--
-Bitte fülle diesen PR-Template aus. Er hilft uns, die Governance (Konstitution v1.4.0) einzuhalten
-und die neuen Git-Branching-Standards durchzusetzen.
+Thank you for contributing to ABB! Please fill out this template to help us review your contribution effectively.
 -->
 
-## Metadaten
+## 📝 Description
 
-- Branch-Name: `<!-- z. B. feature/login-form -->`
-- PR-Typ: <!-- wähle: feature | fix | chore | docs | hotfix | refactor | build | ci | api -->
-- Breaking Change: <!-- ja/nein (kurz begründen, falls ja) -->
+### Type of Change
 
-## Bezüge
+<!-- Select one -->
 
-- Verknüpftes Issue: <!-- #123 -->
-- Spezifikation/Plan: <!-- Link zu specs/[id-name]/ oder .specify/* (Specify) -->
+- [ ] 🐛 Bug Fix
+- [ ] ✨ New Feature
+- [ ] 📖 Documentation
+- [ ] 🎨 Style/UI Improvement
+- [ ] ♻️ Code Refactoring
+- [ ] ⚡ Performance Improvement
+- [ ] 🔒 Security Fix
+- [ ] 🧪 Test Addition/Improvement
+- [ ] 🔧 Build/CI Configuration
 
-## Zusammenfassung
+### Summary
 
-<!-- Kurz: Was wird geändert und warum? Fokus auf Nutzerwert und Ziel aus der Spezifikation. -->
+<!-- Describe your changes in detail -->
 
-## Umsetzung / Änderungen
+### Related Issues
 
-<!-- Wichtige technische Punkte, Struktur (Nuxt 3), neue/angepasste Komponenten, Composables, API-Routen, Migrations. -->
+<!-- Link related issues: Fixes #123, Closes #456, Related to #789 -->
 
-## Tests & Nachweise
+## 🧪 Testing
 
-- Unit-Tests (Vitest): <!-- hinzugefügt/aktualisiert? kurz beschreiben -->
-- Hinweis: Unit-Tests laufen standardmäßig in Azure SWA CI. Lokal nur ausführen, wenn für diesen PR nötig (z. B. neue Logik/Refactor, Debugging).
-- Component-Tests (Vue Test Utils): <!-- ja/nein, was -->
-- E2E (Playwright): <!-- ja/nein, welche Flows -->
-- Manuelle Nachweise (Screenshots/Video/GIF):
-  - <!-- Bild/Video-Links oder kurze Beschreibung -->
+### Test Coverage
 
-## Datenbank & Deploy
+- [ ] Unit tests added/updated
+- [ ] Component tests added/updated
+- [ ] E2E tests added/updated
+- [ ] Manual testing completed
 
-- Prisma-Migrationen enthalten: <!-- ja/nein -->
-- Migrationspfad(e): <!-- prisma/migrations/... -->
-- Seed/Backfill erforderlich: <!-- ja/nein, kurz erklären -->
-- Rollback-Strategie (falls relevant): <!-- kurz -->
+### Screenshots/Videos
 
----
+<!-- If applicable, add screenshots or videos showing the changes -->
 
-## Checkliste: Git Branching Standards (REQUIRED)
+## 🗃️ Database Changes
 
-- [ ] Branch-Name entspricht dem Schema: `feature|fix|chore|docs|hotfix|api|ci|build|refactor/<kurz-und-klar>`
-- [ ] PR basiert auf aktuellem `main` (rebase bevorzugt), keine Merge-Commits
-- [ ] PR ist fokussiert (bezieht sich nur auf ein Thema/Feature/Fix)
-- [ ] Verknüpftes Issue und Spezifikation/Plan sind referenziert
+- [ ] Prisma migrations included
+- [ ] Seed data updated
+- [ ] Rollback strategy documented
 
-## Auto-Labeling (Info)
+## ✅ Checklist
 
-Dieser PR wird automatisch gelabelt anhand von:
+### Code Quality
 
-- Branch-Prefix (z. B. `feature/*`, `fix/*`, `docs/*`, `api/*`, `ci/*`, `build/*`, `refactor/*`)
-- Geänderten Pfaden (z. B. `prisma/*` → `db`, `components/|pages/|plugins/vuetify` → `ui`, `tests?/|__tests__/|e2e/` → `tests`, `README.md|docs/|specs/|.specify/` → `docs` + `tests` bei `specs/`, `server/api/` → `api`, `.github/workflows/` → `ci`, Build-/Config-Dateien → `build`)
+- [ ] My code follows the project's style guidelines
+- [ ] ESLint passes without errors
+- [ ] TypeScript compilation succeeds
+- [ ] Unit tests pass
+- [ ] Build succeeds without errors
 
-Bitte Labels ergänzen/anpassen, falls die Automatik etwas übersieht.
+### Mission Alignment
 
-## Checkliste: Konstitution-Compliance (Nuxt 3 + TS + Vuetify + Prisma)
+- [ ] This change supports female empowerment through education and coaching
 
-- Komponenten & Pages
-  - [ ] Keine Business-Logik in Pages; Logik in Composables ausgelagert
-  - [ ] Komponenten haben klare, getypte Props mit JSDoc
-  - [ ] File-based Routing von Nuxt strikt eingehalten (inkl. `[param].vue`)
-  - [ ] SSR standardmäßig aktiv; SPA nur für authentifizierte Admin-Bereiche
+## 🚨 Breaking Changes
 
-- TypeScript & Codequalität
-  - [ ] TypeScript strict, keine `any` (Ausnahmen nur mit TODO und Begründung)
-  - [ ] ESLint + Prettier sauber; Typecheck grün
+<!-- List any breaking changes and migration instructions -->
 
-- Composables & Datenzugriff
-  - [ ] Server-seitiges Laden via `useFetch`/`$fetch` nach Nuxt-Standards
-  - [ ] Vuetify-Composables (`useTheme`, `useDisplay`) korrekt genutzt, kein manuelles Breakpoint-Hardcoding
+## 📝 Additional Notes
 
-- Prisma ORM
-  - [ ] Alle DB-Operationen laufen über Prisma-Client; kein Raw-SQL ohne triftigen Grund
-  - [ ] Schema-Änderungen durch Migrationen versioniert; Typen sind konsistent
-
-- Vuetify 3 (MD3)
-  - [ ] UI setzt auf Vuetify-Komponenten; minimale Custom-CSS
-  - [ ] Theming über zentrale Vuetify-Konfiguration; Tree-Shaking beachtet
-
-- Tests & Qualitätssicherung
-  - [ ] Unit- und Component-Tests für Kernlogik vorhanden/aktualisiert (Ziel: >80% für Business-Logik)
-  - [ ] Kritische Flows via Playwright abgedeckt (falls Nutzerfluss betroffen)
-
-- Performance & SEO
-  - [ ] Meta-Tags via `useHead()` gepflegt
-  - [ ] Assets/Images optimiert (Nuxt Image, Lazy-Loading)
-
-- Sicherheit
-  - [ ] Keine Secrets im Code, in Configs oder in MCP/Prompts
-
-## MCP (optional, nur lokal)
-
-- [ ] Falls MCP genutzt: nur lokal/ephemer, keine produktive Abhängigkeit
-- [ ] Keine Secrets in MCP-Prompts; Outputs bestehen TypeScript-Checks
-
-## Release-Notes (optional)
-
-<!-- Kurzform für Changelog/Release: 1–3 Bullet-Points -->
-
-## Sonstiges
-
-<!-- Offene Punkte, Risiken, Follow-ups, Migrationshinweise für Betrieb/Support. -->
-
----
-
-<!-- Hinweise
-- PR-Titel kann sich an Conventional Commits orientieren (empfohlen):
-  feat: … | fix: … | chore: … | docs: … | refactor: … | test: … | perf: … | build: … | ci: … | revert: …
-- Bitte Squash & Merge bevorzugen; PR-Beschreibung wird zur Squash-Commit-Nachricht.
--->
+<!-- Any additional information for reviewers -->

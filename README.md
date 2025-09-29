@@ -1,47 +1,30 @@
-# ABB - Nuxt.js Application
+# ABB - Female Empowerment Platform 🌟
 
-[![Azure Static Web Apps (Staging)](https://github.com/Laparo/abb/actions/workflows/azure-static-web-apps.yml/badge.svg)](https://github.com/Laparo/abb/actions/workflows/azure-static-web-apps.yml)
+> Empowering women through education, coaching, and community
 
-A modern web application built with Nuxt.js 3, following spec-driven development principles using GitHub Spec Kit (How to handle Qodo findings:
+[![Azure Static Web Apps CI/CD](https://github.com/Laparo/abb/actions/workflows/azure-swa.yml/badge.svg)](https://github.com/Laparo/abb/actions/workflows/azure-swa.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](https://www.typescriptlang.org/)
 
-1. Öffne den PR und prüfe den Qodo-Kommentar (Summary) und ggf. Inline-Kommentare.
-1. Behebe Findings nach Priorität (security → correctness → performance → maintainability → style).
-1. Markiere erledigte Threads als "resolved".
-1. Falls keine Findings: merge-policy beachten (z. B. mindestens 1 manueller Review) oder manuellen Approve geben.
+## ✨ Über das Projekt
 
-## Automatisches Anwenden von Suggestions
+ABB ist eine innovative Plattform, die speziell für die Stärkung von Frauen durch Bildung und Coaching entwickelt wurde. Unser Ziel ist es, eine sichere und unterstützende Umgebung zu schaffen, in der Frauen ihre Potentiale entdecken und entwickeln können.
 
-Dieses Projekt verfügt über ein Script zum automatischen Anwenden von GitHub suggestion blocks:
+### 🎯 Mission
 
-```bash
-# Alle Suggestions eines PRs anwenden
-npm run apply:qodo -- --pr <number>
+- **Bildung**: Hochwertige Kurse und Lernmaterialien
+- **Coaching**: Persönliche Begleitung und Mentoring
+- **Community**: Vernetzung gleichgesinnter Frauen
+- **Empowerment**: Stärkung des Selbstvertrauens und der Fähigkeiten
 
-# Dry-run (Vorschau ohne Änderungen)
-npm run apply:qodo -- --pr <number> --dry
+## 🚀 Features
 
-# Hilfe anzeigen
-npm run apply:qodo -- --help
-```
-
-Das Script:
-
-- Wendet `~~~suggestion` Blöcke aus PR-Reviews automatisch an
-- Führt ESLint --fix und Prettier auf betroffenen Dateien aus
-- Staged alle Änderungen für den nächsten Commit
-- Unterstützt sowohl Inline-Dateireferenzen als auch "Affected:" Hinweisey).
-
-## Project Overview
-
-> Architektur-Update (2025-09): Ehemalige getrennte `/frontend` und `/backend` Verzeichnisse wurden konsolidiert. Alle API-Routen (Nitro) und das Frontend leben nun in einer einzigen Nuxt 3 Codebasis. Historische Referenzen zu `abb-backend.azurewebsites.net` sind obsolet (siehe `docs/AUTH-ENTRA.md`). Falls künftig wieder eine externe API benötigt wird, setze `NUXT_PUBLIC_API_BASE` und stelle CORS separat sicher.
-
-This project follows a structured development approach with strict architectural principles:
-
-- **Component-First Development**: Reusable Vue components with clear interfaces
-- **TypeScript-First**: Strict type safety throughout the application
-- **SSR/SPA Hybrid**: Optimized rendering strategy for performance and SEO
-- **File-Based Routing**: Following Nuxt.js conventions
-- **Composables Pattern**: Business logic sharing via Vue 3 Composition API
+- 📚 **Kurs-Management**: Erstellen, buchen und verwalten von Kursen
+- 👩‍🏫 **Coach-Profil**: Detaillierte Profile für Coaches und Mentoren
+- 📅 **Buchungssystem**: Einfache Terminbuchung und -verwaltung
+- 🔐 **Sichere Authentifizierung**: Azure Entra ID Integration
+- 📱 **Responsive Design**: Optimiert für alle Geräte
+- ♿ **Barrierefreiheit**: WCAG 2.1 AA konform
 
 ## Quick Start
 
@@ -52,7 +35,7 @@ This project follows a structured development approach with strict architectural
 
 ### Setup
 
-```bash
+````bash
 # Abhängigkeiten installieren
 npm install
 
@@ -65,55 +48,66 @@ npm run prisma:generate
 # (Optional) Migration für SQLite (Entwicklung)
 npm run prisma:migrate
 
-# Husky Hooks einrichten (wird durch npm install via prepare-Skript automatisch ausgeführt)
-npm run prepare
-```
+## 🛠️ Technologie-Stack
 
-### Entwickeln & Qualität
+### Frontend
+- **Framework**: [Nuxt.js 3](https://nuxt.com/) mit Vue 3 Composition API
+- **UI Library**: [Vuetify 3](https://vuetifyjs.com/) mit Material Design 3
+- **Sprache**: TypeScript (Strict Mode)
+- **Styling**: CSS-in-JS mit Vuetify theming
+
+### Backend & Datenbank
+- **ORM**: [Prisma](https://prisma.io/) mit SQLite (dev) / PostgreSQL (prod)
+- **API**: Nuxt Server API mit serverless functions
+- **Authentifizierung**: Azure Entra ID (ehemals Azure AD)
+
+### Deployment & DevOps
+- **Hosting**: [Azure Static Web Apps](https://azure.microsoft.com/services/app-service/static/)
+- **CI/CD**: GitHub Actions
+- **Testing**: Vitest (Unit) + Playwright (E2E)
+- **Code Quality**: ESLint + Prettier + TypeScript
+
+## 🏃‍♀️ Quick Start
+
+### Voraussetzungen
+- Node.js 18+
+- npm 9+
+- Git
+
+### Installation
 
 ```bash
-# Dev-Server starten (http://localhost:3000)
+# Repository klonen
+git clone https://github.com/Laparo/abb.git
+cd abb
+
+# Dependencies installieren
+npm install
+
+# Entwicklungsserver starten
 npm run dev
+````
 
-# Linting (ESLint)
-npm run lint
-
-# Typecheck (vue-tsc)
-npm run typecheck
-
-# Unit-Tests (Vitest)
-# Standard: laufen in Azure SWA CI. Lokal nur bei Bedarf ausführen.
-npm test -- --run --reporter=dot
-
-# E2E-Tests (Playwright)
-# Lokal sinnvoll für End-to-End-Flows; selektiv ausführen
-npm run test:e2e
-
-# Optional: letzten HTML-Report öffnen
-npx playwright show-report
-```
-
-## Production Deployment
-
-ABB uses a two-branch strategy for safe production deployments:
-
-### Branch Strategy
-
-- `main` → **Staging Environment** (Azure Static Web Apps Preview)
-- `production` → **Production Environment** (Azure Static Web Apps Production)
-
-### Release Workflow
+### Verfügbare Scripts
 
 ```bash
-# 1. Normal development: feature → main
-git checkout -b feature/my-feature
-# ... develop and test
-# Create PR: feature/my-feature → main
+# Entwicklung
+npm run dev          # Entwicklungsserver mit HMR
+npm run dev:stable   # Stabiler Entwicklungsserver
 
-# 2. Production release: main → production
-git checkout main
-git pull origin main
-# Create PR: main → production (requires 2+ reviews)
+# Build & Deployment
+npm run build        # Production Build
+npm run preview      # Preview des Production Builds
+
+# Testing
+npm test             # Unit Tests mit Vitest
+npm run e2e          # E2E Tests mit Playwright
+npm run test:coverage # Test Coverage Report
+
+# Code Quality
+npm run lint         # ESLint Check
+npm run lint:fix     # ESLint Auto-Fix
+npm run typecheck    # TypeScript Type Check
 ```
 
 ### Production Requirements
@@ -150,372 +144,119 @@ git checkout -b hotfix/critical-fix
 # Create PR: production → main
 ```
 
-### Optional: MCP (lokal)
-
-Siehe `docs/MCP.md` für einen lokalen, ephemeren Prisma MCP-Server und die VS Code Anbindung.
-
-### Spec-Driven Development
-
-This project uses GitHub Spec Kit for structured development. Available commands:
-
-```bash
-# Establish project principles (already done)
-/constitution
-
-# Create feature specifications
-/specify
-
-# Clarify and de-risk specifications
-/clarify
-
-# Create implementation plans
-/plan
-
-# Generate actionable tasks
-/tasks
-
-# Validate alignment & consistency
-/analyze
-
-# Execute implementation
-/implement
-```
-
-## Architecture
-
-The project follows Nuxt.js best practices with additional constraints:
-
-- Server-Side Rendering for public content
-- Component-based architecture with clear separation of concerns
-- TypeScript throughout with strict mode enabled
-- Composables for business logic and state management
-- Performance-first approach with Core Web Vitals compliance
-
-## Development
-
-### Code Quality
-
-- ESLint with Nuxt.js recommended rules
-- Prettier for formatting
-- Commitlint for conventional commits
-- Pre-commit hooks for quality gates
-
-Hooks:
-
-- pre-commit: lint-staged (ESLint + Prettier) und Typecheck
-- commit-msg: Commitlint (Conventional Commits)
-
-### Vuetify-Import (wichtig)
-
-- Auto-Import von Vuetify-Komponenten ist deaktiviert.
-- Importiere benötigte Komponenten immer explizit aus `vuetify/components`, z. B.:
-
-```ts
-import { VCard, VBtn } from 'vuetify/components'
-```
-
-Vorteil: deutlich kleinere Bundles durch Tree-Shaking (in diesem Projekt ca. 630 kB → 200–250 kB, abhängig von der Route). Details und Beispiel siehe `docs/CONTRIBUTING.md`.
-
-### Remote Reviews mit Qodo (optional)
-
-Dieses Repository kann PR-Reviews automatisiert durch einen Remote-Agenten (Qodo) anstoßen.
-
-Einrichtung:
-
-1. (Empfohlen) Installiere die Qodo GitHub App für dieses Repository/Organisation.
-1. Optionalen Webhook konfigurieren:
-
-- Repository Secret `QODO_WEBHOOK_URL` setzen (Settings → Secrets and variables → Actions).
-- Qodo-Endpunkt hinterlegen, der PR-Events entgegennimmt.
-
-1. Review-Trigger:
-
-- Automatisch bei PR-Events (opened, reopened, synchronize, ready_for_review).
-- Manuell durch Label `qodo:review` setzen (unterstützt in `qodo-review` Workflow).
-
-Konfiguration:
-
-- `.github/qodo.yml` steuert Pfade, Event-Trigger und Kommentarverhalten.
-- `.github/workflows/qodo-review.yml` veröffentlicht optional einen Hinweis-Kommentar und kann (wenn Secret gesetzt) den Webhook auslösen.
-
-Sicherheit & Hinweise:
-
-- Der Workflow nutzt `pull_request` (Code aus Branch) und `pull_request_target` (für Label-Event). Sensible Aktionen passieren nur mit klaren Bedingungen und optionalem Secret.
-- Wenn kein Secret `QODO_WEBHOOK_URL` gesetzt ist, wird der Webhook-Schritt übersprungen; die reine Hinweis-Kommentierung bleibt aktiv.
-
-How to handle Qodo findings:
-
-1. Öffne den PR und prüfe den Qodo-Kommentar (Summary) und ggf. Inline-Kommentare.
-1. Behebe Findings nach Priorität (security → correctness → performance → maintainability → style).
-1. Markiere erledigte Threads als “resolved”.
-1. Falls keine Findings: merge-policy beachten (z. B. mindestens 1 manueller Review) oder manuellen Approve geben.
-
-#### Commit Messages
-
-Format: \<type>(\<scope>): \<subject>
-
-Erlaubte Scopes: db, ui, tests, seo, hotfix, api, ci, build, refactor
-
-Beispiele:
-
-- feat(ui): add dark theme toggle
-- fix(db): correct migration for user.email index
-- chore(tests): speed up vitest workers
-- docs(seo): document meta tags strategy in README
-- ci(ci): enforce branch naming policy
-
-#### Auto-Labeling
-
-PRs werden automatisch gelabelt, basierend auf Branch-Prefixen und geänderten Pfaden:
-
-- Nach Branch-Prefix:
-  - feature/\* → feature
-  - fix/\* → fix
-  - chore/\* → chore
-  - docs/\* → docs
-  - hotfix/\* → hotfix
-  - api/\* → api
-  - ci/\* → ci
-  - build/\* → build
-  - refactor/\* → refactor
-
-- Nach Pfaden (Änderungen im PR):
-  - `prisma/schema.prisma`, `prisma/migrations/` → db
-  - `components/`, `pages/`, `plugins/vuetify`, `nuxt.config.[jt]s`, `composables/`, `public/`, `assets/` → ui
-  - `tests?/`, `__tests__/`, `e2e/` → tests
-  - `app.vue`, `app.config.[jt]s` → seo
-  - `README.md`, `docs/`, `specs/`, `.specify/` → docs (Hinweis: `specs/` fügt zusätzlich `tests` hinzu)
-  - `server/api/`, `server/routes/` → api
-  - `.github/workflows/`, `.github/labels.yml` → ci
-  - `vite.config.[jt]s`, `vitest.config.[jt]s`, `playwright.config.[jt]s`, `tsconfig.json`, `eslint*`, `prettier*` → build
-  - `composables/` oder `components/` ohne gleichzeitige Änderungen unter `tests?/` → refactor
-
-### Testing Strategy
-
-- Unit tests: Vitest for composables
-- Component tests: Vue Test Utils
-- E2E tests: Playwright for critical flows
-- Performance monitoring: Core Web Vitals
-
-### CI & Tests Übersicht
-
-Die GitHub Actions Pipeline (Azure Static Web Apps Workflow) führt gestaffelte Quality Gates aus:
-
-1. (PR) Smoke-Test (Playwright) – schneller Render-/Routing-Check gegen lokal gebauten Nitro-Server
-1. (PR & Push) Lint + Typecheck + Unit Tests
-1. Coverage Gate (Vitest) – Abbruch wenn globale Schwellenwerte unterschritten
-1. Static Generation & Deployment (SWA Upload via OIDC)
-
-Artefakte:
-
-- `playwright-smoke-report` (nur bei PRs / Fehleranalyse)
-- `coverage/` HTML-Report (lokal via `npm run test:coverage`)
-
-Coverage Schwellen (anfänglich konservativ, später anhebbar):
-
-| Metric     | Minimum |
-|------------|---------|
-| Statements | 50%     |
-| Lines      | 50%     |
-| Branches   | 50%     |
-| Functions  | 30%     |
-
-Hinweis: Thresholds für Lines/Statements wurden vorübergehend abgesenkt (Option A) um CI nicht zu blockieren; Erhöhung erfolgt iterativ (siehe CHANGELOG ‘Unreleased’).
-
-Ein fehlgeschlagener Coverage-Schritt blockiert Deployment.
-
-### TDD Quick Start
-
-- Tests kontinuierlich ausführen: `npm run test:watch`
-- Komponenten mit Vuetify testen: `tests/utils/mountWithVuetify.ts` verwenden
-- Coverage-Bericht: `npm run test:coverage` (HTML-Report unter `coverage/`)
-
-### Playwright E2E – Setup & CI-Details
-
-So laufen die E2E-Tests lokal und im CI stabil:
-
-- Der Playwright Webserver startet einen produktionsähnlichen Nitro-Server über `npm run build && npm run start:prod`.
-- Die Datenbank wird explizit per Environment-Variable gesetzt: `DATABASE_URL = file:[…/dev-e2e.db]` (absolute Pfadangabe). Dadurch ist keine `.env.e2e` notwendig und CI-Flakes werden vermieden.
-- `e2e/global-setup.ts` sorgt vor dem Testlauf für Prisma Client, Migrationen und Seeding. Lokal genügt daher `npm run test:e2e` ohne weitere Vorbereitung.
-- Erste Ausführung lokal: ggf. Playwright-Browser installieren: `npx playwright install --with-deps`.
-- Reports: Playwright generiert einen HTML-Report unter `playwright-report/`; im CI wird er als Artefakt hochgeladen.
-
-Troubleshooting:
-
-- Timeout beim Start (120s): Build langsam oder Port 3000 belegt. Lösung: lokale Prozesse beenden, erneut ausführen.
-- Prisma Fehler/fehlende Tabellen: `global-setup` führt Migration/Seed aus; falls abgebrochen, erneut starten.
-- Fehlende Browser im CI: Der Workflow führt `npx playwright install --with-deps` aus (siehe Web CI).
-
-### Lokaler Produktionslauf
-
-Für einen lokalen Start im produktionsähnlichen Modus (Nitro Node-Server) gibt es zwei Varianten:
-
-```bash
-# 1) Lokal mit .env laden (empfohlen für Entwicklung)
-npm run build
-npm run start:local:prod
-
-# 2) Reines Produktions-Startskript (ENV muss extern gesetzt sein)
-npm run build
-npm run start:prod
-```
-
-Hinweise:
-
-- `start:local:prod` lädt Variablen aus `.env` (z. B. `DATABASE_URL` für Prisma/DB).
-- Migrationen laufen nicht automatisch. Stelle sicher, dass die Datenbank migriert/initialisiert ist:
-  - Lokal/CI (SQLite): `npm run prisma:migrate` und optional `npm run prisma:seed`.
-  - Produktion (Azure SQL): Der GitHub Workflow führt auf `main` `prisma migrate deploy` mit `PRISMA_SCHEMA=prisma/schema.prod.prisma` aus.
-- Troubleshooting:
-  - Prisma Fehler `P1001` → Datenbank nicht erreichbar/Connection String prüfen.
-  - Fehlende Tabellen → Migrationen ausführen (`prisma migrate deploy/dev`).
-
-## License
-
-GNU General Public License v3.0 – siehe [LICENSE](LICENSE)
-
-## Deployment: Azure Static Web Apps (SWA)
-
-ABB wird als Nuxt 3 Universal Rendering (SSR) App auf Azure Static Web Apps betrieben. Die CI-Pipeline ist bereits vorhanden und führt Lint, Typecheck, Unit- und E2E-Tests aus, bevor deployt wird.
-
-### CI-Übersicht (Web CI)
-
-- Trigger: PRs und Pushes auf `main`.
-- Jobs:
-  - Docs/Markdownlint (nur bei geänderten `.md`-Dateien)
-  - Frontend: Lint → Typecheck → E2E (Playwright)
-  - **Unit-Tests**: Laufen in Azure Static Web Apps (SWA) CI; lokal nur bei Bedarf
-- Artefakte: `playwright-report` (E2E), `coverage` (Vitest).
-- Concurrency: laufende Builds desselben PR/SHA werden abgebrochen, um Ressourcen zu sparen.
-
-### Azure Unit Tests Integration
-
-Die Unit-Tests werden direkt in Azure's Free-Tier-Umgebung ausgeführt:
-
-- **Kostenoptimierung**: Spart GitHub Actions Minuten (~100-300 Minuten/Monat)
-- **Native Integration**: Tests sind Teil der Azure Build-Pipeline
-- **Fehlerbehandlung**: Deployment schlägt bei Test-Fehlern automatisch fehl
-- **Performance**: Optimierte Node.js-Umgebung für schnellere Test-Ausführung
-
-Konfiguration in `staticwebapp.config.json`:
-
-```json
-{
-  "buildConfig": {
-    "buildCommand": "npm run test -- --reporter=dot --run && npm run build"
-  }
-}
-```
-
-Siehe `docs/AZURE-UNIT-TESTS.md` für detaillierte Dokumentation.
-
-### Voraussetzungen (Produktion)
-
-- Azure Subscription mit Berechtigung zum Erstellen von SWA-Ressourcen
-- GitHub Repository (dieses Projekt) mit Schreibrechten für Actions
-
-### Provisionierung (Option A – Azure Portal)
-
-1. Im Azure Portal: Static Web App erstellen (Free/Standard)
-1. Source: GitHub, Repository: dieses Repo, Branch: `main`
-1. Build-Konfiguration:
-
-- App location: `/`
-- Api location: `.output/server`
-- Output location: `.output/public`
-
-1. Den vom Portal angelegten GitHub Workflow prüfen/anpassen (hier liegt bereits `azure-static-web-apps.yml` vor und nutzt dieselben Pfade)
-
-### Provisionierung (Option B – GitHub OIDC + bestehender Workflow)
-
-1. In Microsoft Entra ID eine Föderierte Anmeldeinformation für dieses Repo/Branch anlegen (OIDC)
-1. Folgende GitHub Secrets im Repository setzen:
-
-- `AZURE_CLIENT_ID`
-- `AZURE_TENANT_ID`
-- `AZURE_SUBSCRIPTION_ID`
-
-1. Optional statt OIDC: `AZURE_STATIC_WEB_APPS_API_TOKEN` setzen (weniger flexibel)
-
-1. Push auf `main` (Production) oder PR gegen `main` (Preview) auslösen – der Workflow `Azure Static Web Apps` baut und deployed nach erfolgreichen Quality Gates
-
-Hinweis: Die Pfade sind ebenfalls in der Projektverfassung und im Workflow dokumentiert.
-
-### Lokale Emulation (optional)
-
-Die SWA CLI kann für lokale Tests genutzt werden (optional; nicht als Build-Abhängigkeit). Siehe Microsoft Learn Doku zur SWA CLI.
-
-### Sicherheits- und Routing-Konfiguration
-
-- Security Headers und weitere Regeln werden über `staticwebapp.config.json` verwaltet
-- Nuxt `error.vue` deckt 404/Fehlerseiten ab (A11y: H1, Main-Landmark)
-
-## Produktion: Azure SQL + Prisma
-
-Diese App nutzt lokal/CI SQLite (`prisma/schema.prisma`) und in Produktion Azure SQL/SQL Server (`prisma/schema.prod.prisma`). Auf dem Main-Branch führt das Deploy‑Workflow automatisch Datenbank‑Migrationen aus.
-
-### Voraussetzungen
-
-- Azure SQL Server + Datenbank sind provisioniert.
-- Produktions‑Schema liegt unter `prisma/schema.prod.prisma` (provider: `sqlserver`).
-- GitHub Actions Runner hat Netzwerkzugriff auf die DB (Firewall/VNet, siehe unten).
-
-### Secret konfigurieren
-
-- GitHub → Repository → Settings → Secrets and variables → Actions → New repository secret
-- Name: `DATABASE_URL`
-- Wert: Verbindungstring (Beispiele unten)
-
-Das Deploy‑Workflow `.github/workflows/azure-static-web-apps.yml` nutzt:
-
-- `PRISMA_SCHEMA=prisma/schema.prod.prisma`
-- `DATABASE_URL` (Secret)
-- Führt auf `main` automatisch `prisma migrate deploy` aus.
-
-### Beispiel‑Verbindungsstrings (Azure SQL)
-
-- SQL‑Authentifizierung (einfacher Einstieg):
+## 📁 Projektstruktur
 
 ```text
-sqlserver://myserver.database.windows.net:1433;database=mydb;user=myuser;password=My$tr0ngP4ss!;encrypt=true;TrustServerCertificate=false
+abb/
+├── pages/              # Nuxt.js File-based Routing
+├── components/         # Vue 3 Komponenten
+├── composables/        # Business Logic & State
+├── server/api/         # Nuxt Server API Routes
+├── prisma/             # Datenbank Schema & Migrations
+├── plugins/            # Nuxt Plugins (Vuetify, etc.)
+├── middleware/         # Route Middleware
+├── assets/             # Uncompiled Assets
+├── public/             # Static Assets
+├── .specify/           # Spec-driven Development
+└── docs/               # Dokumentation
 ```
 
-- Verwaltete Identität / Entra ID (fortgeschritten, Treiber-/Version‑abhängig):
+## 🧪 Testing
 
-```text
-sqlserver://myserver.database.windows.net:1433;database=mydb;encrypt=true;Authentication=ActiveDirectoryMsi
-```
-
-Hinweise:
-
-- Für MSI/Entra ID muss die Identität auf dem DB‑Server berechtigt sein (CREATE USER FROM EXTERNAL PROVIDER + Rollen).
-- Unterstützung ist vom verwendeten ODBC‑Treiber/Prisma‑Version abhängig; bitte vor Produktion testen.
-
-### Netzwerk‑Checkliste
-
-- Azure SQL Firewall: Zugriff erlauben (z. B. „Allow Azure services…“ oder gezielte IP‑Regeln).
-- GitHub‑gehostete Runner haben dynamische IPs. Sichere Optionen:
-  - Self‑hosted Runner in Azure (statische Absender‑IP).
-  - Migrationen aus einer Azure‑Ressource mit Managed Identity ausführen (Container/Function).
-- Für App‑Zugriff (Azure Functions) ggf. VNet‑Integration + Private Endpoint erwägen.
-
-### Lokale Verifikation (optional)
+### Unit Tests
 
 ```bash
-PRISMA_SCHEMA=prisma/schema.prod.prisma \
-DATABASE_URL="<azure-sql-connection-string>" \
-npx prisma migrate deploy
+npm test                    # Alle Unit Tests
+npm run test:watch         # Watch Mode
+npm run test:coverage      # Coverage Report
 ```
 
-### Verhalten im CI/CD
+### E2E Tests
 
-- Quality Gates (Lint/Types/Tests/E2E) laufen vor Deploy.
-- Migrationen laufen nur auf `main`. Feature‑Branches verändern keine Produktions‑DB.
-- Häufige Fehlerbilder:
-  - Login/Timeout → Firewall/Netzwerk oder Credentials prüfen.
-  - „Drift/older schema“ → Migrationen erneut ausführen bzw. sicherstellen, dass alle `prisma/migrations/*` im Repo sind.
+```bash
+npm run e2e                # Alle E2E Tests
+npm run e2e:headed        # Mit Browser UI
+npm run e2e:debug         # Debug Mode
+```
 
-### Secrets & Key Vault (optional)
+## 🔧 Development Guidelines
 
-- Produktions‑App‑Settings können Secrets via Azure Key Vault Referenzen beziehen.
-- Für den GitHub‑Migrationsschritt wird weiterhin ein nutzbarer `DATABASE_URL` benötigt — alternativ Workflow anpassen, um das Secret via OIDC/`az` aus Key Vault zur Laufzeit zu holen.
+### Code Style
+
+- **TypeScript**: Strict Mode, keine `any` Types
+- **Vue 3**: Composition API, `<script setup>` Syntax
+- **Vuetify**: Material Design 3 Komponenten verwenden
+- **ESLint**: Nuxt.js empfohlene Regeln
+
+### Git Workflow
+
+```bash
+# Feature Branch erstellen
+git checkout -b feature/amazing-feature
+
+# Commits (Conventional Commits)
+git commit -m "feat: add course booking feature"
+git commit -m "fix: resolve authentication issue"
+
+# Pull Request erstellen
+```
+
+## 🚀 Deployment
+
+### Azure Static Web Apps
+
+```bash
+# Automatisches Deployment via GitHub Actions
+git push origin main  # Trigger Deployment
+```
+
+## 📖 Dokumentation
+
+- 📋 [Contributing Guide](CONTRIBUTING.md) - Contribution Guidelines
+- 🔐 [Authentifizierung](docs/AUTH-ENTRA.md) - Azure Entra ID Setup
+- ☁️ [Azure Deployment](docs/AZURE-SWA-SETUP.md) - Azure Static Web Apps
+
+## 🤝 Contributing
+
+Wir freuen uns über Contributions! Bitte lies unsere [Contributing Guidelines](CONTRIBUTING.md) für Details.
+
+### Prioritäre Bereiche
+
+- 🎯 **Accessibility**: WCAG 2.1 AA Compliance
+- 🌍 **Internationalization**: Multi-Language Support
+- ⚡ **Performance**: Core Web Vitals Optimization
+- 📱 **Mobile**: Progressive Web App Features
+
+## 📊 Project Status
+
+### 🟢 Completed
+
+- ✅ Grundlegende Projektstruktur
+- ✅ Nuxt.js 3 + Vue 3 + Vuetify 3 Setup
+- ✅ Azure Entra ID Authentifizierung
+- ✅ Prisma ORM Integration
+- ✅ Azure Static Web Apps Deployment
+
+### 🟡 In Progress
+
+- 🔄 Coach Profil Features
+- 🔄 Erweiterte Buchungsfunktionen
+- 🔄 Admin Dashboard
+
+## 💬 Community & Support
+
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/Laparo/abb/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/Laparo/abb/discussions)
+- 📧 **Email**: [hello@laparo.biz](mailto:hello@laparo.biz)
+
+## 📄 License
+
+Dieses Projekt ist unter der MIT License lizenziert - siehe [LICENSE](LICENSE) für Details.
+
+---
+
+## 🌟 Vision
+
+**Gemeinsam schaffen wir eine Welt, in der jede Frau ihre Träume verwirklichen kann.**
+
+Made with ❤️ for female empowerment
