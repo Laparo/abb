@@ -1,0 +1,113 @@
+name: 🏥 Health Check
+description: Monitor repository health and community metrics
+title: "[Health Check]: "
+labels: ["health-check", "monitoring"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🏥 **Repository Health Check**
+        
+        This template helps track the overall health and community engagement of the ABB repository.
+
+  - type: dropdown
+    id: health_category
+    attributes:
+      label: Health Category
+      description: What aspect of repository health are you monitoring?
+      options:
+        - Community Engagement
+        - Code Quality
+        - Security Compliance
+        - Performance Metrics
+        - Documentation Coverage
+        - Accessibility Compliance
+        - Dependencies Health
+        - CI/CD Pipeline
+        - User Experience
+        - Mobile Responsiveness
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_metrics
+    attributes:
+      label: Current Metrics
+      description: What are the current measurements or observations?
+      placeholder: |
+        - Metric 1: Current value
+        - Metric 2: Current value
+        - Issue count: X
+        - Last activity: Date
+    validations:
+      required: true
+
+  - type: textarea
+    id: target_metrics
+    attributes:
+      label: Target Metrics
+      description: What should these metrics be for optimal health?
+      placeholder: |
+        - Target for Metric 1: Expected value
+        - Target for Metric 2: Expected value
+        - Improvement goal: Description
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency Level
+      description: How urgent is addressing this health issue?
+      options:
+        - 🟢 Low - Monitoring only
+        - 🟡 Medium - Should improve in next release
+        - 🟠 High - Needs attention soon
+        - 🔴 Critical - Immediate action required
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact_assessment
+    attributes:
+      label: Impact Assessment
+      description: How does this affect our users and mission?
+      placeholder: |
+        Impact on:
+        - Users: Description
+        - Contributors: Description
+        - Mission of female empowerment: Description
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_actions
+    attributes:
+      label: Proposed Actions
+      description: What actions do you suggest to improve this health metric?
+      placeholder: |
+        - [ ] Action 1
+        - [ ] Action 2
+        - [ ] Action 3
+
+  - type: textarea
+    id: monitoring_plan
+    attributes:
+      label: Monitoring Plan
+      description: How should we continue monitoring this metric?
+      placeholder: |
+        - Frequency: Weekly/Monthly/Quarterly
+        - Tools: GitHub Insights, Analytics, etc.
+        - Success criteria: Definition of improvement
+
+  - type: checkboxes
+    id: health_checklist
+    attributes:
+      label: Health Checklist
+      options:
+        - label: This health check supports our mission of female empowerment
+          required: true
+        - label: The proposed actions are actionable and measurable
+          required: true
+        - label: I have considered the impact on community members
+          required: true

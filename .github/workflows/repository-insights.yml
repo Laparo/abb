@@ -1,0 +1,157 @@
+name: 📊 Repository Insights
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      report_type:
+        description: 'Type of insights report to generate'
+        required: true
+        default: 'weekly'
+        type: choice
+        options:
+          - weekly
+          - monthly
+          - quarterly
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  generate-insights:
+    runs-on: ubuntu-latest
+    name: Generate Repository Insights
+
+    steps:
+      - name: 🛒 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📊 Generate Community Health Report
+        id: health
+        run: |
+          echo "# 🏥 Repository Health Report" > health-report.md
+          echo "Generated on: $(date)" >> health-report.md
+          echo "" >> health-report.md
+          
+          # Repository Statistics
+          echo "## 📈 Repository Statistics" >> health-report.md
+          echo "- **Total Commits**: $(git rev-list --count HEAD)" >> health-report.md
+          echo "- **Contributors**: $(git shortlog -sn | wc -l)" >> health-report.md
+          echo "- **Branches**: $(git branch -r | wc -l)" >> health-report.md
+          echo "- **Latest Release**: $(git describe --tags --abbrev=0 2>/dev/null || echo 'No releases yet')" >> health-report.md
+          echo "" >> health-report.md
+          
+          # Code Quality Metrics
+          echo "## 🔍 Code Quality" >> health-report.md
+          echo "- **TypeScript Files**: $(find . -name '*.ts' -not -path './node_modules/*' | wc -l)" >> health-report.md
+          echo "- **Vue Components**: $(find . -name '*.vue' -not -path './node_modules/*' | wc -l)" >> health-report.md
+          echo "- **Test Files**: $(find . -name '*.spec.ts' -o -name '*.test.ts' -not -path './node_modules/*' | wc -l)" >> health-report.md
+          echo "" >> health-report.md
+          
+          # Documentation Coverage
+          echo "## 📚 Documentation" >> health-report.md
+          echo "- **README.md**: ✅ Present" >> health-report.md
+          echo "- **CONTRIBUTING.md**: $([ -f CONTRIBUTING.md ] && echo '✅ Present' || echo '❌ Missing')" >> health-report.md
+          echo "- **CODE_OF_CONDUCT.md**: $([ -f CODE_OF_CONDUCT.md ] && echo '✅ Present' || echo '❌ Missing')" >> health-report.md
+          echo "- **SECURITY.md**: $([ -f SECURITY.md ] && echo '✅ Present' || echo '❌ Missing')" >> health-report.md
+          echo "- **License**: $([ -f LICENSE ] && echo '✅ Present' || echo '❌ Missing')" >> health-report.md
+          echo "" >> health-report.md
+          
+          # Female Empowerment Mission Metrics
+          echo "## 🌟 Mission Alignment" >> health-report.md
+          echo "- **Mission-related Keywords**: $(grep -ri 'female\|women\|empowerment\|coaching' . --include='*.md' --include='*.vue' --include='*.ts' | wc -l)" >> health-report.md
+          echo "- **Accessibility Features**: $(grep -ri 'aria-\|role=\|alt=' . --include='*.vue' | wc -l)" >> health-report.md
+          echo "- **Inclusive Language**: $(grep -ri 'inclusive\|diversity\|community' . --include='*.md' | wc -l)" >> health-report.md
+          echo "" >> health-report.md
+
+      - name: 📊 GitHub API Insights
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get repository insights using GitHub CLI
+          echo "## 🔢 GitHub Insights" >> health-report.md
+          
+          # Issues and PRs
+          echo "- **Open Issues**: $(gh issue list --state open --json number | jq length)" >> health-report.md
+          echo "- **Closed Issues**: $(gh issue list --state closed --json number | jq length)" >> health-report.md
+          echo "- **Open PRs**: $(gh pr list --state open --json number | jq length)" >> health-report.md
+          echo "- **Merged PRs**: $(gh pr list --state merged --json number | jq length)" >> health-report.md
+          echo "" >> health-report.md
+          
+          # Recent Activity
+          echo "## 🚀 Recent Activity (Last 30 Days)" >> health-report.md
+          echo "- **Recent Commits**: $(git log --since='30 days ago' --oneline | wc -l)" >> health-report.md
+          echo "- **Active Contributors**: $(git log --since='30 days ago' --format='%an' | sort -u | wc -l)" >> health-report.md
+          echo "" >> health-report.md
+
+      - name: 🎯 Mission Impact Assessment
+        run: |
+          echo "## 🎯 Female Empowerment Impact" >> health-report.md
+          echo "" >> health-report.md
+          
+          # Count mission-relevant features
+          COURSE_FEATURES=$(grep -ri 'course\|learning\|education' . --include='*.vue' --include='*.ts' | wc -l)
+          COACH_FEATURES=$(grep -ri 'coach\|mentor\|guidance' . --include='*.vue' --include='*.ts' | wc -l)
+          COMMUNITY_FEATURES=$(grep -ri 'community\|network\|connect' . --include='*.vue' --include='*.ts' | wc -l)
+          
+          echo "- **Education Features**: $COURSE_FEATURES implementations" >> health-report.md
+          echo "- **Coaching Features**: $COACH_FEATURES implementations" >> health-report.md
+          echo "- **Community Features**: $COMMUNITY_FEATURES implementations" >> health-report.md
+          echo "" >> health-report.md
+          
+          # Accessibility Score
+          A11Y_FEATURES=$(grep -ri 'aria-\|role=\|alt=\|tabindex\|screen.*reader' . --include='*.vue' --include='*.ts' | wc -l)
+          echo "- **Accessibility Implementations**: $A11Y_FEATURES features" >> health-report.md
+          echo "" >> health-report.md
+
+      - name: 📋 Recommendations
+        run: |
+          echo "## 🎯 Recommendations" >> health-report.md
+          echo "" >> health-report.md
+          
+          # Check for missing elements and suggest improvements
+          if [ ! -f "docs/ACCESSIBILITY.md" ]; then
+            echo "- 🔍 **Consider adding**: Detailed accessibility documentation" >> health-report.md
+          fi
+          
+          if [ $(grep -ri 'test.*coverage' . --include='*.md' | wc -l) -eq 0 ]; then
+            echo "- 📊 **Consider adding**: Test coverage reporting" >> health-report.md
+          fi
+          
+          if [ $(find . -name '*.spec.ts' -not -path './node_modules/*' | wc -l) -lt 5 ]; then
+            echo "- 🧪 **Priority**: Increase test coverage for better quality" >> health-report.md
+          fi
+          
+          echo "- 🌍 **Suggestion**: Consider internationalization for global reach" >> health-report.md
+          echo "- 📱 **Enhancement**: Mobile-first features for accessibility" >> health-report.md
+          echo "- 👥 **Community**: Encourage diverse contributions" >> health-report.md
+          echo "" >> health-report.md
+          
+          echo "---" >> health-report.md
+          echo "*This report is generated automatically to support our mission of female empowerment through technology.*" >> health-report.md
+
+      - name: 📝 Create Health Check Issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create an issue with the health report
+          ISSUE_TITLE="📊 Weekly Repository Health Report - $(date +%Y-%m-%d)"
+          
+          gh issue create \
+            --title "$ISSUE_TITLE" \
+            --body-file health-report.md \
+            --label "health-check,monitoring,automated" \
+            --assignee "@me"
+
+      - name: 📈 Upload Health Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-health-report
+          path: health-report.md
+          retention-days: 30

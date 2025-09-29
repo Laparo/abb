@@ -1,0 +1,116 @@
+name: 🔐 Security Monitoring
+on:
+  schedule:
+    # Run daily at 6:00 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Security Health Check
+
+    steps:
+      - name: 🛒 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔍 Dependency Vulnerability Scan
+        uses: actions/dependency-review-action@v4
+        if: github.event_name == 'pull_request'
+        with:
+          fail-on-severity: moderate
+          allow-dependencies-licenses: MIT, Apache-2.0, BSD-3-Clause, ISC
+
+      - name: 🛡️ CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
+          queries: security-and-quality
+
+      - name: 🔧 Build for Analysis
+        run: |
+          npm ci
+          npm run build
+
+      - name: 🔍 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: 📊 Generate Security Report
+        run: |
+          echo "# 🔐 Security Health Report" > security-report.md
+          echo "Generated on: $(date)" >> security-report.md
+          echo "" >> security-report.md
+          
+          # Check for common security files
+          echo "## 🛡️ Security Documentation" >> security-report.md
+          echo "- **SECURITY.md**: $([ -f SECURITY.md ] && echo '✅ Present' || echo '❌ Missing')" >> security-report.md
+          echo "- **.env in .gitignore**: $(grep -q '\.env' .gitignore && echo '✅ Protected' || echo '⚠️ Check required')" >> security-report.md
+          echo "- **package-lock.json**: $([ -f package-lock.json ] && echo '✅ Present' || echo '❌ Missing')" >> security-report.md
+          echo "" >> security-report.md
+          
+          # Check for secrets in code
+          echo "## 🔍 Secret Scanning" >> security-report.md
+          echo "- **API Keys Pattern**: $(grep -r 'api.*key\|secret.*key' . --include='*.ts' --include='*.js' --include='*.vue' | grep -v node_modules | wc -l) findings" >> security-report.md
+          echo "- **Password Patterns**: $(grep -r 'password.*=\|pwd.*=' . --include='*.ts' --include='*.js' --include='*.vue' | grep -v node_modules | wc -l) findings" >> security-report.md
+          echo "- **Token Patterns**: $(grep -r 'token.*=\|auth.*=' . --include='*.ts' --include='*.js' --include='*.vue' | grep -v node_modules | wc -l) findings" >> security-report.md
+          echo "" >> security-report.md
+          
+          # Security Headers Check (for web apps)
+          echo "## 🌐 Web Security" >> security-report.md
+          echo "- **Content Security Policy**: $(grep -r 'Content-Security-Policy\|CSP' . --include='*.ts' --include='*.js' | grep -v node_modules | wc -l) implementations" >> security-report.md
+          echo "- **HTTPS Enforcement**: $(grep -r 'https.*only\|secure.*true' . --include='*.ts' --include='*.js' | grep -v node_modules | wc -l) implementations" >> security-report.md
+          echo "" >> security-report.md
+
+      - name: 🚨 Create Security Issue on Findings
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Only create issue if there are security concerns
+          SECURITY_FINDINGS=$(grep -r 'api.*key\|secret.*key\|password.*=\|pwd.*=\|token.*=' . --include='*.ts' --include='*.js' --include='*.vue' | grep -v node_modules | wc -l)
+          
+          if [ $SECURITY_FINDINGS -gt 0 ]; then
+            echo "🚨 Security findings detected, creating issue..."
+            ISSUE_TITLE="🚨 Security Review Required - $(date +%Y-%m-%d)"
+            
+            cat > security-issue.md << EOF
+          ## 🔐 Security Review Required
+          
+          Automated security scanning has detected potential security concerns that require manual review.
+          
+          **Findings Summary:**
+          - Potential secrets in code: $SECURITY_FINDINGS patterns found
+          
+          **Action Required:**
+          1. Review identified patterns for actual secrets
+          2. Ensure no hardcoded credentials exist
+          3. Verify all secrets use environment variables
+          4. Update .gitignore if needed
+          
+          **Female Empowerment Mission Impact:**
+          Ensuring security protects our community members and maintains trust in our platform.
+          
+          **Priority:** High - Security is fundamental to protecting our users.
+          EOF
+            
+            gh issue create \
+              --title "$ISSUE_TITLE" \
+              --body-file security-issue.md \
+              --label "security,priority-high,automated" \
+              --assignee "@me"
+          fi
+
+      - name: 📈 Upload Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-health-report
+          path: security-report.md
+          retention-days: 30
