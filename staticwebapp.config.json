@@ -1,20 +1,8 @@
 {
   "routes": [
     {
-      "route": "/200",
-      "rewrite": "/200.html"
-    },
-    {
-      "route": "/404",
-      "rewrite": "/404.html"
-    },
-    {
-      "route": "/index.html",
-      "redirect": "/"
-    },
-    {
       "route": "/",
-      "rewrite": "/api/server"
+      "rewrite": "/index.html"
     }
   ],
   "platform": {
