@@ -1,12 +1,12 @@
 {
   "routes": [
     {
-      "route": "/200",
-      "rewrite": "/200.html"
-    },
-    {
       "route": "/404",
       "rewrite": "/404.html"
+    },
+    {
+      "route": "/200",
+      "rewrite": "/200.html"
     },
     {
       "route": "/courses",
@@ -21,6 +21,6 @@
     "apiRuntime": "node:18"
   },
   "navigationFallback": {
-    "rewrite": "/api/server"
+    "rewrite": "/index.html"
   }
 }
