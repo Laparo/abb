@@ -50,14 +50,14 @@ jobs:
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ABB }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
           app_location: "/"
-          api_location: ""
           output_location: ".output/public"
+          api_location: ""
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ABB }}
+          action: "upload"
           skip_app_build: true
-          deployment_environment: "staging"
+          # Note: We intentionally deploy to the default (production) environment of the SWA using the API token.
+          # Staging/preview environments require PR-based previews or higher SKUs. The GitHub job environment remains "staging".
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
