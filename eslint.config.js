@@ -11,11 +11,15 @@ export default [
     ignores: [
       'dist',
       '.nuxt',
+      '**/nuxt',
+      '**/.nuxt/**',
+      'backend/.nuxt/**',
       'coverage',
       'node_modules',
       '.output',
       'e2e/playwright-report',
       'playwright-report',
+      'playwright-report-azure',
       'test-results',
       // Legacy ESLint config files
       '.eslintrc.cjs',
