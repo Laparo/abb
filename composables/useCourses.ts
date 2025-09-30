@@ -10,7 +10,7 @@ export interface CourseListItem {
 
 export const useCourses = () => {
   const config = useRuntimeConfig()
-  const base = config.public.apiBase?.replace(/\/$/, '') || ''
+  const base = (config.public.apiBase as string)?.replace(/\/$/, '') || ''
   const list = async (opts?: { limit?: number }) => {
     const limit = opts?.limit ?? 10
     const { data, error } = await useFetch<CourseListItem[]>(
